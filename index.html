@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>顧客×商品セグメント別売上分析レポート生成ツール｜ビルマテル</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@300;400;600;700&display=swap');
+
+  :root {
+    --navy: #2F5496;
+    --navy-light: #4472C4;
+    --navy-dark: #1e3a6e;
+    --accent: #FFD966;
+    --green-soft: #E2EFDA;
+    --blue-soft: #D9E1F2;
+    --blue-header: #BDD7EE;
+    --gray-row: #F2F2F2;
+    --bg: #f0f4f8;
+    --surface: #ffffff;
+    --text: #1a2340;
+    --text-muted: #6b7a9a;
+    --border: #dde3ef;
+    --success: #28a745;
+    --shadow: 0 4px 24px rgba(47,84,150,0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ─── Header ─── */
+  header {
+    background: var(--navy);
+    padding: 0 40px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; color: var(--navy);
+  }
+  header h1 {
+    font-size: 17px; font-weight: 600; color: #fff; letter-spacing: 0.02em;
+  }
+  header .badge {
+    margin-left: auto;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.8);
+    font-size: 11px; padding: 3px 10px; border-radius: 20px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* ─── Main ─── */
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* ─── Hero ─── */
+  .hero {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .hero-icon {
+    width: 72px; height: 72px;
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 34px; margin: 0 auto 20px;
+    box-shadow: 0 8px 32px rgba(47,84,150,0.25);
+  }
+  .hero h2 {
+    font-size: 26px; font-weight: 700; color: var(--text);
+    margin-bottom: 10px; letter-spacing: -0.02em;
+  }
+  .hero p {
+    font-size: 14px; color: var(--text-muted); line-height: 1.7;
+    max-width: 520px; margin: 0 auto;
+  }
+
+  /* ─── Upload Card ─── */
+  .card {
+    background: var(--surface);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 36px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+  }
+  .card-title {
+    font-size: 13px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--navy); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title::before {
+    content: ''; width: 4px; height: 16px;
+    background: var(--navy); border-radius: 2px;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: var(--navy-light);
+    background: var(--blue-soft);
+  }
+  .drop-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .drop-icon { font-size: 40px; margin-bottom: 12px; }
+  .drop-main { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .drop-sub { font-size: 13px; color: var(--text-muted); }
+
+  .file-selected {
+    display: none;
+    align-items: center; gap: 12px;
+    background: var(--green-soft);
+    border: 1px solid #b7d9a0;
+    border-radius: 10px; padding: 14px 18px; margin-top: 16px;
+  }
+  .file-selected.show { display: flex; }
+  .file-selected .file-icon { font-size: 24px; }
+  .file-selected .file-name { font-size: 14px; font-weight: 600; color: #2d6a1f; }
+  .file-selected .file-size { font-size: 12px; color: #5a8f4a; }
+  .remove-file {
+    margin-left: auto; background: none; border: none;
+    color: #888; cursor: pointer; font-size: 18px; padding: 4px;
+  }
+
+  /* ─── Generate Button ─── */
+  .btn-generate {
+    width: 100%;
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    color: #fff; border: none; border-radius: 12px;
+    padding: 18px 32px;
+    font-size: 16px; font-weight: 600;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer; letter-spacing: 0.02em;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    transition: all 0.2s; box-shadow: 0 4px 16px rgba(47,84,150,0.3);
+  }
+  .btn-generate:hover:not(:disabled) {
+    transform: translateY(-1px); box-shadow: 0 8px 24px rgba(47,84,150,0.4);
+  }
+  .btn-generate:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  /* ─── Progress ─── */
+  .progress-wrap {
+    display: none; margin-top: 24px;
+  }
+  .progress-wrap.show { display: block; }
+  .progress-bar-bg {
+    background: var(--border); border-radius: 99px; height: 8px; overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .progress-bar {
+    height: 100%; background: linear-gradient(90deg, var(--navy) 0%, var(--navy-light) 100%);
+    border-radius: 99px; transition: width 0.3s; width: 0%;
+  }
+  .progress-label {
+    font-size: 13px; color: var(--text-muted); display: flex;
+    justify-content: space-between;
+  }
+
+  /* ─── Log ─── */
+  .log-area {
+    display: none; margin-top: 20px;
+    background: #f8fafc; border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; max-height: 200px; overflow-y: auto;
+    font-family: 'Inter', monospace; font-size: 12px; color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .log-area.show { display: block; }
+  .log-entry { padding: 2px 0; }
+  .log-entry.ok { color: var(--success); }
+  .log-entry.err { color: #dc3545; }
+  .log-entry.info { color: var(--navy); }
+
+  /* ─── Download ─── */
+  .download-wrap {
+    display: none; text-align: center; padding: 32px;
+    background: linear-gradient(135deg, #e8f4ea 0%, #d4eeda 100%);
+    border: 1px solid #b7d9a0; border-radius: 16px; margin-top: 24px;
+  }
+  .download-wrap.show { display: block; }
+  .download-check { font-size: 48px; margin-bottom: 12px; }
+  .download-title { font-size: 18px; font-weight: 700; color: #2d6a1f; margin-bottom: 6px; }
+  .download-sub { font-size: 13px; color: #5a8f4a; margin-bottom: 20px; }
+  .btn-download {
+    background: var(--success); color: #fff; border: none; border-radius: 10px;
+    padding: 14px 32px; font-size: 15px; font-weight: 600;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+    transition: all 0.2s; box-shadow: 0 4px 16px rgba(40,167,69,0.3);
+  }
+  .btn-download:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(40,167,69,0.4); }
+
+  /* ─── Info panel ─── */
+  .info-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    margin-bottom: 24px;
+  }
+  .info-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .info-num {
+    font-size: 28px; font-weight: 700; color: var(--navy);
+    font-family: 'Inter', sans-serif;
+  }
+  .info-label { font-size: 12px; color: var(--text-muted); }
+
+  /* ─── Sheet list ─── */
+  .sheet-list {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;
+  }
+  .sheet-chip {
+    background: var(--blue-soft); color: var(--navy);
+    border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 500;
+  }
+  .sheet-chip.special { background: var(--accent); color: var(--navy-dark); }
+
+  /* ─── Privacy notice ─── */
+  .privacy {
+    text-align: center; font-size: 12px; color: var(--text-muted);
+    margin-top: 32px; display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 0 16px; }
+    main { padding: 24px 16px 60px; }
+    .info-grid { grid-template-columns: 1fr 1fr; }
+    .card { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">B</div>
+  <h1>ビルマテル｜顧客×商品セグメント別売上分析レポート 生成ツール</h1>
+  <span class="badge">20社版 v2.0</span>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="hero-icon">📊</div>
+    <h2>顧客×商品セグメント別売上分析レポートを生成</h2>
+    <p>CAULからエクスポートしたCSVをアップロードするだけで、<br>
+    顧客×商品セグメント別×月次の売上分析レポート（Excel）を自動生成します。</p>
+  </div>
+
+  <!-- 生成されるシート構成 -->
+  <div class="card">
+    <div class="card-title">生成されるシート構成</div>
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="info-num">22</div>
+        <div class="info-label">総シート数</div>
+      </div>
+      <div class="info-item">
+        <div class="info-num">20</div>
+        <div class="info-label">顧客別シート（直近年度売上順）</div>
+      </div>
+      <div class="info-item">
+        <div class="info-num">17</div>
+        <div class="info-label">商品セグメント（行方向）</div>
+      </div>
+    </div>
+    <div class="sheet-list">
+      <span class="sheet-chip special">📋 サマリ</span>
+      <span class="sheet-chip">株式会社日比谷ｱﾒﾆｽ 本社</span>
+      <span class="sheet-chip">西武造園株式会社</span>
+      <span class="sheet-chip">住友林業緑化 東京</span>
+      <span class="sheet-chip">... 他17社 ...</span>
+      <span class="sheet-chip special">📂 RawData</span>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">
+      ✦ 月次売上・年度小計・全期間合計をSUMIFS数式で参照 &nbsp;
+      ✦ 顧客サマリー（全期間売上・直近年度売上・商品数・月平均売上）&nbsp;
+      ✦ 商品セグメントは売上降順で自動ソート &nbsp;
+      ✦ 営業示唆コメント自動生成
+    </div>
+  </div>
+
+  <!-- アップロード -->
+  <div class="card">
+    <div class="card-title">CSVファイルをアップロード</div>
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput" accept=".csv">
+      <div class="drop-icon">📂</div>
+      <div class="drop-main">ここをクリック、またはCSVをドラッグ＆ドロップ</div>
+      <div class="drop-sub">UTF-8 または Shift-JIS 形式のCSVファイル（売上実績_XXXX.csv）</div>
+    </div>
+    <div class="file-selected" id="fileSelected">
+      <span class="file-icon">📄</span>
+      <div>
+        <div class="file-name" id="fileName">—</div>
+        <div class="file-size" id="fileSize">—</div>
+      </div>
+      <button class="remove-file" id="removeFile" title="削除">✕</button>
+    </div>
+  </div>
+
+  <!-- 生成ボタン -->
+  <button class="btn-generate" id="btnGenerate" disabled>
+    <span>📊</span> Excelレポートを生成
+  </button>
+
+  <!-- プログレス -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar-bg">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="progress-label">
+      <span id="progressStep">処理中…</span>
+      <span id="progressPct">0%</span>
+    </div>
+  </div>
+
+  <!-- ログ -->
+  <div class="log-area" id="logArea"></div>
+
+  <!-- ダウンロード -->
+  <div class="download-wrap" id="downloadWrap">
+    <div class="download-check">✅</div>
+    <div class="download-title">レポート生成完了！</div>
+    <div class="download-sub" id="downloadSub">—</div>
+    <button class="btn-download" id="btnDownload">
+      <span>⬇️</span> Excelファイルをダウンロード
+    </button>
+  </div>
+
+  <div class="privacy">
+    🔒 データはブラウザ内のみで処理されます。外部サーバーへの送信は一切行われません。
+  </div>
+</main>
+
+<script>
+// ============================================================
+//  CONSTANTS
+// ============================================================
+
+const TARGET_CUSTOMERS = [
+  "株式会社日比谷ｱﾒﾆｽ 本社",
+  "西武造園株式会社 北関東営業所",
+  "住友林業緑化株式会社 資材事業部 東京営業部",
+  "住友林業緑化株式会社資材事業部 大阪営業部",
+  "岡三ﾘﾋﾞｯｸ株式会社",
+  "ｲﾋﾞﾃﾞﾝｸﾞﾘｰﾝﾃｯｸ株式会社 東京支店",
+  "田島緑化プラス株式会社",          // CSV実表記（全角）
+  "ｱｺﾞﾗ造園株式会社",
+  "箱根植木株式会社",
+  "東武緑地株式会社",
+  "綿半ｿﾘｭｰｼｮﾝｽﾞ株式会社　緑化セクション", // 全角スペース＋全角カタカナ
+  "株式会社かたばみ",
+  "笠原産業株式会社",
+  "ﾀﾞｲﾄｳﾃｸﾉｸﾞﾘｰﾝ株式会社",          // CSV実表記（括弧なし）
+  "株式会社ｸﾞﾘﾑ",
+  "株式会社ｸﾞﾘｰﾝｱﾝﾄﾞｱｰﾂ",
+  "共同ｶｲﾃｯｸ株式会社 環境部",
+  "綿半ｿﾘｭｰｼｮﾝｽﾞ株式会社(材工)",
+  "鹿島花壇土木株式会社",
+  "大成建設株式会社",
+];
+
+const SEGMENTS = [
+  "① 軽量土壌（CA+）",
+  "② 軽量土壌（その他）",
+  "③ 化粧砂利・火山砂利",
+  "④ 土壌改良材・培養土",
+  "⑤ マルチング資材",
+  "⑥ 緑化基盤資材（シート系）",
+  "⑦ 排水・通気資材",
+  "⑧ 根止め・防根資材",
+  "⑨ 灌水システム資材",
+  "⑩ 灌水システム工事",
+  "⑪ 灌水保守・点検",
+  "⑫ 外構・土留資材",
+  "⑬ 緑化施工工事",
+  "⑭ 物流・運搬",
+  "⑮ 物流付帯費",
+  "⑯ 諸経費・値引き",
+  "⑰ その他（LB）",
+];
+
+// 色定数
+const COLOR = {
+  NAVY:        "FF2F5496",
+  NAVY_LIGHT:  "FF4472C4",
+  ACCENT:      "FFFFD966",
+  GREEN_SOFT:  "FFE2EFDA",
+  BLUE_SOFT:   "FFD9E1F2",
+  BLUE_HEADER: "FFBDD7EE",
+  GRAY_ROW:    "FFF8F8F8",  // 非常に薄いグレー（視認性確保）
+  WHITE:       "FFFFFFFF",
+};
+
+// ============================================================
+//  SEGMENT CLASSIFIER  (NFKC正規化 + キーワードマッチ)
+// ============================================================
+const SEGMENT_RULES = [
+  ["① 軽量土壌（CA+）",           ["ソイルCA","CA改良土壌","菜園用土壌","果樹園用土壌","川砂ベース土壌","CAプラス改良土壌"]],
+  ["② 軽量土壌（その他）",         ["エコロベースネオX","エコロベースSP","エコロベースターフ","クリンカアッシュ"]],
+  ["③ 化粧砂利・火山砂利",         ["エコロベースラピリ","ラピリ","火山砂利","玄武岩火山砂利","ホワイトローム","新白川砂利","スーパーソルL","ターフ砂利","スコリア"]],
+  ["④ 土壌改良材・培養土",         ["ネニプラス","バーク堆肥","培養土","下水汚泥","黒土"]],
+  ["⑤ マルチング資材",             ["マルチング","ナチュラルバーク","メサマルチ","タマリュウマット","針葉樹皮"]],
+  ["⑥ 緑化基盤資材（シート系）",   ["エコロベース(透水)シート","エコロベース(耐根)フィルム","エコロベース（耐根）フィルム","ネオXシート","ネオエックスシート","遮水シート","カナートフィルター","カナートシャット","カナートテープ","カナートブチルテープ","エコムガード","防根シート","シートパレット"]],
+  ["⑦ 排水・通気資材",             ["エコロベース(保水･排水)マット","エコロベース(通気･排水)パイプ","エコロベース(耐圧排水板)マット","エコロベース（耐圧排水板）マット","エコロベース（通気・排水）パイプ","エコロベースドレーン","エコロベースレーン","エコロベースマット75","エコロベースパイプ","ヘチマロン","ソイレンマット","エスレンブロック","ドレーンカバー","排水用継手","アジャスター φ300"]],
+  ["⑧ 根止め・防根資材",           ["エコムテープ","ルートガード","防根テープ","エコロベースサポート","フィットYS","フィット・YS","PEネット"]],
+  ["⑨ 灌水システム資材",           ["灌水コンピューター","移動コンピューター","カクダイ灌水コンピューター","年間式コントローラー","乾電池式コントローラー","雨センサー","圧力センサー SPS","電磁弁","ドリップチューブ17φ","孔なしチューブ","HIVP","VU管","Y形ストレーナー","DOパイプ","プレハブジョイント","エルボコネクター","ストレートコネクター","チーズコネクター","エンドリング","スタートコネクター","クリップバンド","エルボ 7050","減圧弁","逆止弁","自動排水弁","ミニ減圧弁","スウィングチャック","AVボールチェックバルブ","接続ホース","塩ビ","樹脂ソケット","樹脂ニップル","異径樹脂ニップル","砲金ニップル","砲金六角ニップル","砲金ユニオン","SUS異径ニップル","SUSターボ羽子板","逆ブッシング","ネジ口金","ホーセンド","水栓取り付けバキュームブレーカー","蛇口接続アダプター","洗濯機ホース","水道用フレキパイプ","フレキシブルジョイント","フレキパイプ","スプリンクラー","コンピューターボックス","制御盤自立式ユニット","キャビネットスタンド","警報付き漏電ブレーカー","手動灌水用ボタン","サブタイマー","TBOS","αカバー","配管支持ブロック","露出配管用ブロック","プールボックス","DN755","耐圧ホース","ホースリール","リーサルホース","ステンVP立バンド","ステンレス片サドル","MLT-T4DSH","MBS-25R","POSシール","セメダインPOSシール","ダクタークリップ","ワールドダクター","ヒューズ","9V乾電池","灌水システム資材費","灌水資材","ニップル（","ネジ変換アダプター","ドリップチューブ継手","ドリップチューブ継ぎ手","配管諸雑費","プランター間配管支持金具","セメダインスーパーX","スウィングチャック"]],
+  ["⑩ 灌水システム工事",           ["灌水システム工事費","灌水改修工事","灌水補修工事費","灌水補修費","灌水改修費","潅水装置交換","潅水装置凍結防止","灌水装置修繕","灌水設置","灌水計画","灌水設備","ドリップチューブ補修作業費","ドリップチューブ補修費","ドリップチューブ撤去費","ドリップチューブ改修作業費","ドリップチューブ敷設工事費","ドリップチューブ類交換","スプリンクラー復旧工事費","圧力センサー交換","圧力センサー移設","電磁弁コイル部交換工事","電磁弁部取り付け工事","灌水システム点検費","コントローラーボックス交換工事","渡り配管 資材･工事費","灌水システム資材費・施工費","〈自動潅水装置交換〉","〈潅水装置接続パイプ交換〉","〈旧型潅水","〈旧型自動","自動灌水設置","4F自動灌水","植栽地-1＆2　自動灌水装置敷設"]],
+  ["⑪ 灌水保守・点検",             ["年次点検","灌水点検","灌水管理","灌水年間管理","灌水設備点検","既存灌水設備点検","外構灌水点検","灌水システム点検費","灌水補修費【半日】","コントローラー点検作業","制御盤の点検作業","雨センサーの点検作業","雨センサー点検作業","〈各所調整、システム調整〉","点検・補修作業費","点検・補修工事費","点検・試運転調整費","点検作業費","点検訪問費","点検費用","点検費","点検・施工費","試運転調整費","交換作業・通水試験","自動潅水装置各所調整"]],
+  ["⑫ 外構・土留資材",             ["フェザーストーンウォール","エコロベースブロック","ソイレンブロック","アルミ見切り材","エコロベースパレット","ルーフガーデンエッジ","緊結金具","ジベルK","ジベルW","ガルバリウム鋼板","ブロック緊結金具","エコロベースブロック緊結金具","縁石発泡","アンカーベース","シンプソン金具","ジャカゴ土留材","パレット固定金具","ジョイント金具","石材シート","MAS H-1","補修材110","補修材　#110","クリアー材","クリコート","接着剤","OTプライマー","VTプライマー","アスファルトプライマー","水性プライマー","カスタムプライマー","ブチルテープ","コーキング","両面テープ","養生テープ","スタイロフォーム","ゴム板","ボンド（G350）","アニマルネット","チコーワイヤー支柱","タイル","プランター嵩上げ資材","ドリルビス","傾斜付き水切りゴム","サポートスパイク","補修用資材","補修資材","2000×1000","MAS H-110","セメダインスーパーX"]],
+  ["⑬ 緑化施工工事",               ["施工費","工事費","揚重","楊重","緑化基盤敷設","緑化基盤施敷設","緑化基盤施工","敷設工事費","軽量土壌敷設工事費","軽量土壌施設工事費","土留材設置工事費","見切り材工事費","排水管設置作業費","小運搬作業費","嵩上材設置工事費","設置工事費","植栽地","植栽関連","緑化資材　工事費","緑化資材　資材費","一時撤去・再設置","プランター排水穴加工","プランター設置用工事","撤去費","既存撤去","撤去資材処分費","施工指導料","報告書作成","図面協力費用","現地調査費","現調費","作業費","ユニック作業代","ユニック作業費","積込み作業代","「田島緑化工事","「第一園芸","「西武造園","「クレアテラ","【宮澤様","緑化施工","嵩上げ","人工土壌の性能試験費"]],
+  ["⑭ 物流・運搬",                 ["運賃","送料","混載便","小口送料","荷造り送料","引取り運賃","引き取り運賃","発泡回収運賃","資材回収運賃","配送料","転送料","お引取り","お引き取り","若洲引取り","若洲お引取り","若洲引き取り","置場引取り","引取り","在庫使用（配達）","配達","小運搬費","赤帽","引き取り"]],
+  ["⑮ 物流付帯費",                 ["待機料","キャンセル料","キャンセルおよび持ち帰り料","キャンセル・持帰り料","車両キャンセル料","車両キャンセル代","車輛キャンセル料","車輌費","持帰り手数料","持ち帰り手数料","持帰り運賃","持ち帰り運賃","夜間追加料金","夜間追加運賃","夜間運賃","夜間割増","夜間積込手数料","夜間作業配送","早朝料金","早朝荷下ろし","休日追加料金","休日追加費用","休日追加運賃","午後便追加料金","午後便追加運賃","日付変更手数料","追加料金（待機料）","追加送料","追加運賃","残業代","残業","破袋料","フレコン破袋料","時間外積込","パーキング代","駐車代","駐車料金","高速代","電熱線レンタル","レンタル料","積込み作業代（休日）"]],
+  ["⑯ 諸経費・値引き",             ["値引き","特別値引","物件値引き","諸経費","法定福利費","消費財額","加工代","加工費","工場加工代","工場加工費","フレキシブルコンテナバック","フレコンバック","フレコン空袋","フレコン詰め","フレコン処理費","フレコン回収","パレット処分費","パレット回収","処分費","産廃処分費","発生材処分費","安全衛生管理費","共通費","〈共通費〉","イベント交通費","イベント宿泊費","キバコイベント","ロゴデータ作成費","〈知財〉","前回請求金額","総額：","BASE返品売上","その他資材","その他副資材","その他福資材","その他結線雑資材","その他配管雑資材","雑資材","材料費","資材費","ラピリフレコン詰め代","電熱線カッターレンタル費","カバー交換","コーキング他資材"]],
+  ["⑰ その他（LB）",               ["Airpeak","CROSS HAT","CROSS JET","CROSS UL","CROSSPEAK","Air帽子","帽子","スポーツキャップ","Crubo130","回転式ヘルメット","フィリフェラオーレア","リベース","AP-T-","Ck-01"]],
+];
+
+function nfkc(s) {
+  // 簡易NFKC正規化（ブラウザはnormalize対応）
+  try { return s.normalize('NFKC').trim(); } catch(e) { return s.trim(); }
+}
+
+function classifySegment(productName) {
+  const n = nfkc(productName);
+  for (const [seg, kws] of SEGMENT_RULES) {
+    for (const kw of kws) {
+      if (n.includes(nfkc(kw))) return seg;
+    }
+  }
+  return "⑯ 諸経費・値引き"; // デフォルト
+}
+
+// ============================================================
+//  FISCAL YEAR HELPERS
+// ============================================================
+// ビルマテル会計年度: 3月〜翌2月 → XXXX年度 = 3月始まり
+function getFiscalYear(dateStr) {
+  // dateStr: "2024/03/15 0:00:00" or "2024-03-15"
+  const d = new Date(dateStr.replace(/\s.*/, '').replace(/\//g, '-'));
+  const year = d.getFullYear();
+  const month = d.getMonth() + 1; // 1-12
+  return month >= 3 ? year + 1 : year; // 3月〜 → 翌年度
+}
+
+function getYearMonth(dateStr) {
+  const d = new Date(dateStr.replace(/\s.*/, '').replace(/\//g, '-'));
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  return `${y}/${m}`;
+}
+
+function fiscalYearLabel(fy) { return `${fy}年度計`; }
+
+// ============================================================
+//  CSV PARSER (Shift-JIS / UTF-8 自動判定)
+// ============================================================
+async function parseCSV(file) {
+  // Shift-JISを試みる
+  let text;
+  try {
+    text = await readFileAs(file, 'shift-jis');
+    if (!text || text.includes('\uFFFD')) {
+      text = await readFileAs(file, 'utf-8');
+    }
+  } catch(e) {
+    text = await readFileAs(file, 'utf-8');
+  }
+
+  const lines = text.split(/\r?\n/);
+  if (lines.length < 2) throw new Error('CSVの行数が少なすぎます');
+
+  const headers = parseLine(lines[0]);
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    const cols = parseLine(line);
+    if (cols.length < 13) continue;
+    rows.push({
+      date:     cols[2] || '',  // C列 (0-indexed: 2)
+      customer: cols[3] || '',  // D列
+      product:  cols[8] || '',  // I列
+      qty:      parseFloat(cols[9]) || 0,  // J列
+      amount:   parseFloat(cols[12]) || 0, // M列
+    });
+  }
+  return rows;
+}
+
+function readFileAs(file, encoding) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsText(file, encoding);
+  });
+}
+
+function parseLine(line) {
+  const cols = [];
+  let inQ = false, cur = '';
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; }
+    else if (c === ',' && !inQ) { cols.push(cur); cur = ''; }
+    else { cur += c; }
+  }
+  cols.push(cur);
+  return cols;
+}
+
+// ============================================================
+//  DATA AGGREGATION
+// ============================================================
+function buildMonthList(rows) {
+  const months = new Set();
+  for (const r of rows) {
+    if (r.date && r.amount !== 0) months.add(getYearMonth(r.date));
+  }
+  return Array.from(months).sort();
+}
+
+// 月リストに年度小計を挟んだ「列定義」を返す
+function buildColumnDefs(months) {
+  const cols = []; // { type:'month'|'fy', label, fy }
+  let lastFY = null;
+  for (const m of months) {
+    const [y, mo] = m.split('/').map(Number);
+    const fy = mo >= 3 ? y + 1 : y;
+    // 年度が変わる（またはmo===2で前年度末）タイミングで年度計を挿入
+    if (lastFY !== null && fy !== lastFY) {
+      cols.push({ type:'fy', label: fiscalYearLabel(lastFY), fy: lastFY });
+    }
+    cols.push({ type:'month', label: m, fy });
+    lastFY = fy;
+  }
+  // 最後の年度計
+  if (lastFY !== null) {
+    cols.push({ type:'fy', label: fiscalYearLabel(lastFY), fy: lastFY });
+  }
+  return cols;
+}
+
+// customer × segment × yearMonth の売上合計
+function aggregateData(rows) {
+  // rows: [{date, customer, product, amount}]
+  // まずセグメントを付与
+  const enriched = rows.map(r => ({
+    ...r,
+    segment: classifySegment(r.product),
+    ym: r.date ? getYearMonth(r.date) : null,
+    fy: r.date ? getFiscalYear(r.date) : null,
+  })).filter(r => r.ym && r.amount !== 0);
+
+  // 集計: { customer -> { segment -> { ym -> amount } } }
+  const data = {};
+  for (const r of enriched) {
+    if (!data[r.customer]) data[r.customer] = {};
+    if (!data[r.customer][r.segment]) data[r.customer][r.segment] = {};
+    data[r.customer][r.segment][r.ym] = (data[r.customer][r.segment][r.ym] || 0) + r.amount;
+  }
+  return data;
+}
+
+// 直近年度を返す（データ中の最大年度）
+function getLatestFY(rows) {
+  let maxFY = 0;
+  for (const r of rows) {
+    if (r.date) maxFY = Math.max(maxFY, getFiscalYear(r.date));
+  }
+  return maxFY;
+}
+
+// ============================================================
+//  EXCEL BUILDER
+// ============================================================
+
+// スタイルヘルパー
+function hdrFont(wb) { return { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 10 }; }
+function boldFont(wb) { return { bold: true, name: 'Meiryo UI', size: 10 }; }
+function normalFont(wb) { return { name: 'Meiryo UI', size: 10 }; }
+
+function fill(argb) {
+  return { type: 'pattern', pattern: 'solid', fgColor: { argb } };
+}
+
+function thinBorder() {
+  const s = { style: 'thin', color: { argb: 'FFD0D7E8' } };
+  return { top: s, left: s, bottom: s, right: s };
+}
+
+function applyHdrStyle(cell, bgArgb) {
+  cell.font = { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 10 };
+  cell.fill = fill(bgArgb);
+  cell.border = thinBorder();
+  cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: false };
+}
+
+function applyDataStyle(cell, bgArgb) {
+  cell.font = { name: 'Meiryo UI', size: 10 };
+  cell.fill = fill(bgArgb || COLOR.WHITE);
+  cell.border = thinBorder();
+  cell.alignment = { vertical: 'middle', horizontal: 'right' };
+  cell.numFmt = '#,##0';
+}
+
+function applyLabelStyle(cell, bgArgb) {
+  cell.font = { name: 'Meiryo UI', size: 10 };
+  cell.fill = fill(bgArgb || COLOR.WHITE);
+  cell.border = thinBorder();
+  cell.alignment = { vertical: 'middle', horizontal: 'left' };
+}
+
+// ============================================================
+//  BUILD CUSTOMER SHEET
+// ============================================================
+function buildCustomerSheet(wb, ws, customerName, colDefs, aggData, allRows, latestFY) {
+  const cData = aggData[customerName] || {};
+
+  // --- セグメント総売上を計算して降順ソート ---
+  const segTotals = {};
+  for (const seg of SEGMENTS) {
+    const segData = cData[seg] || {};
+    segTotals[seg] = Object.values(segData).reduce((a, b) => a + b, 0);
+  }
+  const sortedSegs = [...SEGMENTS].sort((a, b) => segTotals[b] - segTotals[a]);
+
+  // --- 列インデックスのマッピング ---
+  // A=1: セグメント名, B=2〜: 月/年度計, 最後から2番目=年度計, 最後=総売上
+  const DATA_START_COL = 2; // B列
+  const totalSegCol = DATA_START_COL + colDefs.length; // 総売上列
+  const totalSegs = sortedSegs.length; // = 17
+  const DATA_START_ROW = 9;
+  const DATA_END_ROW = DATA_START_ROW + totalSegs - 1;
+
+  // --- 行1: タイトル ---
+  const r1 = ws.getRow(1);
+  const titleCell = ws.getCell('A1');
+  titleCell.value = `【顧客サマリ】${customerName}`;
+  titleCell.font = { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 12 };
+  titleCell.fill = fill(COLOR.NAVY);
+  titleCell.alignment = { vertical: 'middle', horizontal: 'left' };
+  // タイトルセル結合
+  ws.mergeCells(1, 1, 1, totalSegCol);
+
+  // --- 行2〜5: 顧客サマリー ---
+  const summaryDefs = [
+    ['全期間売上',          `=AQ${DATA_END_ROW + 1}`],
+    ['直近年度売上',        `=AP${DATA_END_ROW + 1}`],  // 最後の年度計（AP列想定）
+    ['商品数（セグメント数）', `=COUNTIF(AQ${DATA_START_ROW}:AQ${DATA_END_ROW},">"&0)`],
+    ['月平均売上',          `=IFERROR(AQ${DATA_END_ROW + 1}/${colDefs.filter(c=>c.type==='month').length},0)`],
+  ];
+
+  // サマリー行は後で列数が確定してから正確な数式を入れるため、
+  // まずプレースホルダーを設定
+  for (let i = 0; i < 4; i++) {
+    const row = i + 2;
+    const labelCell = ws.getCell(row, 1);
+    labelCell.value = summaryDefs[i][0];
+    labelCell.font = { bold: true, name: 'Meiryo UI', size: 10 };
+    labelCell.fill = fill(COLOR.BLUE_SOFT);
+    labelCell.alignment = { vertical: 'middle', horizontal: 'left' };
+    labelCell.border = thinBorder();
+
+    const valCell = ws.getCell(row, 2);
+    valCell.value = { formula: summaryDefs[i][1] };
+    valCell.font = { bold: true, name: 'Meiryo UI', size: 10 };
+    valCell.fill = fill(COLOR.GREEN_SOFT);
+    valCell.numFmt = i === 2 ? '0' : '#,##0';
+    valCell.alignment = { vertical: 'middle', horizontal: 'right' };
+    valCell.border = thinBorder();
+  }
+
+  // --- 行8: ヘッダー ---
+  const hdrRow = ws.getRow(8);
+  const hdrA = ws.getCell(8, 1);
+  hdrA.value = '商品セグメント';
+  applyHdrStyle(hdrA, COLOR.NAVY);
+  hdrA.alignment = { vertical: 'middle', horizontal: 'left', wrapText: false };
+
+  for (let ci = 0; ci < colDefs.length; ci++) {
+    const col = colDefs[ci];
+    const cell = ws.getCell(8, DATA_START_COL + ci);
+    cell.value = col.label;
+    if (col.type === 'fy') {
+      cell.font = { bold: true, color: { argb: 'FF000000' }, name: 'Meiryo UI', size: 10 };
+      cell.fill = fill(COLOR.ACCENT);
+    } else {
+      applyHdrStyle(cell, COLOR.NAVY);
+    }
+    cell.border = thinBorder();
+    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+  }
+
+  // 総売上ヘッダー
+  const totalHdr = ws.getCell(8, totalSegCol);
+  totalHdr.value = '商品別総売上';
+  applyHdrStyle(totalHdr, COLOR.NAVY);
+
+  // --- 行9〜: セグメントデータ ---
+  // RawDataシートのM列が売上金額、D列が顧客名、C列が年月、X列がセグメント
+  const rawDataRange = `RawData!$M$2:$M$99999`;
+  const rawCustRange = `RawData!$D$2:$D$99999`;
+  const rawDateRange = `RawData!$C$2:$C$99999`;
+  const rawSegRange  = `RawData!$X$2:$X$99999`;
+
+  for (let si = 0; si < sortedSegs.length; si++) {
+    const seg = sortedSegs[si];
+    const rowNum = DATA_START_ROW + si;
+    const isGray = si % 2 === 1;
+    const rowBg = isGray ? COLOR.GRAY_ROW : COLOR.WHITE;
+
+    // A列: セグメント名
+    const labelCell = ws.getCell(rowNum, 1);
+    labelCell.value = seg;
+    applyLabelStyle(labelCell, rowBg);
+
+    // 月別・年度計列
+    for (let ci = 0; ci < colDefs.length; ci++) {
+      const col = colDefs[ci];
+      const cell = ws.getCell(rowNum, DATA_START_COL + ci);
+      const colBg = col.type === 'fy' ? COLOR.ACCENT : (isGray ? COLOR.GRAY_ROW : COLOR.WHITE);
+
+      if (col.type === 'month') {
+        // SUMIFS数式: 顧客名 AND 年月(TEXT列) AND セグメント
+        // RawDataのW列(23列目)に "YYYY/MM" 形式のテキスト年月列を格納しSUMIFSで参照
+        const rawYMRange = `RawData!$W$2:$W$99999`;
+        const ymVal = col.label; // "2024/03"
+        cell.value = {
+          formula: `=IFERROR(SUMIFS(${rawDataRange},${rawCustRange},"${customerName}",${rawYMRange},"${ymVal}",${rawSegRange},"${seg}"),0)`
+        };
+      } else {
+        // 年度計: その年度の月列をSUM
+        const fyCols = [];
+        for (let ci2 = 0; ci2 < colDefs.length; ci2++) {
+          if (colDefs[ci2].type === 'month' && colDefs[ci2].fy === col.fy) {
+            fyCols.push(ci2);
+          }
+        }
+        if (fyCols.length > 0) {
+          const firstColLetter = excelCol(DATA_START_COL + fyCols[0]);
+          const lastColLetter  = excelCol(DATA_START_COL + fyCols[fyCols.length - 1]);
+          cell.value = { formula: `=SUM(${firstColLetter}${rowNum}:${lastColLetter}${rowNum})` };
+        } else {
+          cell.value = 0;
+        }
+        cell.font = { bold: false, name: 'Meiryo UI', size: 10 };
+      }
+
+      cell.fill = fill(colBg);
+      cell.border = thinBorder();
+      cell.alignment = { vertical: 'middle', horizontal: 'right' };
+      cell.numFmt = '#,##0';
+    }
+
+    // 総売上列
+    const totalCell = ws.getCell(rowNum, totalSegCol);
+    totalCell.value = { formula: `=IFERROR(SUMIFS(${rawDataRange},${rawCustRange},"${customerName}",${rawSegRange},"${seg}"),0)` };
+    totalCell.fill = fill(isGray ? COLOR.GRAY_ROW : COLOR.WHITE);
+    totalCell.border = thinBorder();
+    totalCell.numFmt = '#,##0';
+    totalCell.alignment = { vertical: 'middle', horizontal: 'right' };
+  }
+
+  // --- 合計行 ---
+  const sumRow = DATA_END_ROW + 1;
+  const sumLabelCell = ws.getCell(sumRow, 1);
+  sumLabelCell.value = '合計';
+  sumLabelCell.font = boldFont();
+  sumLabelCell.fill = fill(COLOR.BLUE_HEADER);
+  sumLabelCell.border = thinBorder();
+  sumLabelCell.alignment = { vertical: 'middle', horizontal: 'left' };
+
+  for (let ci = 0; ci < colDefs.length; ci++) {
+    const cell = ws.getCell(sumRow, DATA_START_COL + ci);
+    const colLetter = excelCol(DATA_START_COL + ci);
+    cell.value = { formula: `=SUM(${colLetter}${DATA_START_ROW}:${colLetter}${DATA_END_ROW})` };
+    cell.font = boldFont();
+    cell.fill = fill(colDefs[ci].type === 'fy' ? COLOR.ACCENT : COLOR.BLUE_HEADER);
+    cell.border = thinBorder();
+    cell.numFmt = '#,##0';
+    cell.alignment = { vertical: 'middle', horizontal: 'right' };
+  }
+
+  // 総売上合計
+  const totalSumCell = ws.getCell(sumRow, totalSegCol);
+  const totalColLetter = excelCol(totalSegCol);
+  totalSumCell.value = { formula: `=SUM(${totalColLetter}${DATA_START_ROW}:${totalColLetter}${DATA_END_ROW})` };
+  totalSumCell.font = boldFont();
+  totalSumCell.fill = fill(COLOR.BLUE_HEADER);
+  totalSumCell.border = thinBorder();
+  totalSumCell.numFmt = '#,##0';
+  totalSumCell.alignment = { vertical: 'middle', horizontal: 'right' };
+
+  // サマリー数式を正確な列に修正
+  // 直近年度計列（最後のfy列）を探す
+  let lastFYColIdx = -1;
+  for (let ci = colDefs.length - 1; ci >= 0; ci--) {
+    if (colDefs[ci].type === 'fy') { lastFYColIdx = ci; break; }
+  }
+  if (lastFYColIdx >= 0) {
+    const lastFYColLetter = excelCol(DATA_START_COL + lastFYColIdx);
+    // 全期間売上
+    ws.getCell(2, 2).value = { formula: `=${totalColLetter}${sumRow}` };
+    // 直近年度売上
+    ws.getCell(3, 2).value = { formula: `=${lastFYColLetter}${sumRow}` };
+    // 商品数
+    ws.getCell(4, 2).value = { formula: `=COUNTIF(${totalColLetter}${DATA_START_ROW}:${totalColLetter}${DATA_END_ROW},">"&0)` };
+    // 月平均
+    const monthCount = colDefs.filter(c => c.type === 'month').length;
+    ws.getCell(5, 2).value = { formula: `=IFERROR(${totalColLetter}${sumRow}/${monthCount},0)` };
+  }
+
+  // --- 列幅（###が出ないよう十分な幅に設定）---
+  ws.getColumn(1).width = 32;  // セグメント名
+  ws.getColumn(2).width = 18;  // B列（サマリー値・最初の月データ）
+  for (let ci = 1; ci < colDefs.length; ci++) {
+    ws.getColumn(DATA_START_COL + ci).width = colDefs[ci].type === 'fy' ? 15 : 13;
+  }
+  ws.getColumn(totalSegCol).width = 16;
+
+  // --- 行高さ ---
+  ws.getRow(1).height = 24;
+  ws.getRow(8).height = 22;
+
+  // --- 見出し行固定 ---
+  ws.views = [{ state: 'frozen', xSplit: 1, ySplit: 8, topLeftCell: 'B9', activeCell: 'B9' }];
+}
+
+// Excel列番号 → アルファベット変換 (1=A, 27=AA, ...)
+function excelCol(n) {
+  let s = '';
+  while (n > 0) {
+    const r = (n - 1) % 26;
+    s = String.fromCharCode(65 + r) + s;
+    n = Math.floor((n - 1) / 26);
+  }
+  return s;
+}
+
+// ============================================================
+//  BUILD SUMMARY SHEET
+// ============================================================
+function buildSummarySheet(wb, ws, sortedCustomers, colDefs, latestFY) {
+  // --- 行1: タイトル ---
+  ws.mergeCells(1, 1, 1, sortedCustomers.length + 1);
+  const t1 = ws.getCell('A1');
+  t1.value = '顧客×商品セグメント別売上分析レポート｜ビルマテル';
+  t1.font = { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 13 };
+  t1.fill = fill(COLOR.NAVY);
+  t1.alignment = { vertical: 'middle', horizontal: 'left' };
+  ws.getRow(1).height = 28;
+
+  // データ期間
+  const monthLabels = colDefs.filter(c => c.type === 'month').map(c => c.label);
+  ws.getCell('A2').value = `データ期間: ${monthLabels[0] || '—'} ～ ${monthLabels[monthLabels.length-1] || '—'}`;
+  ws.getCell('A2').font = { name: 'Meiryo UI', size: 10 };
+
+  // --- セクション1: 顧客別直近年度売上ランキング ---
+  ws.getCell('A3').value = '▶ 顧客別 直近年度売上ランキング（20社）';
+  ws.getCell('A3').font = { bold: true, name: 'Meiryo UI', size: 11 };
+
+  // ヘッダー行4
+  const rankHdrs = ['順位', '顧客名', '直近年度売上', '全期間売上', '主力セグメント'];
+  for (let i = 0; i < rankHdrs.length; i++) {
+    const cell = ws.getCell(4, i + 1);
+    cell.value = rankHdrs[i];
+    cell.font = { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 10 };
+    cell.fill = fill(COLOR.NAVY_LIGHT);
+    cell.border = thinBorder();
+    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+  }
+
+  // 20社データ行 (5〜24)
+  for (let i = 0; i < sortedCustomers.length; i++) {
+    const cust = sortedCustomers[i];
+    const rowNum = i + 5;
+    const isGray = i % 2 === 1;
+    const rowBg = isGray ? COLOR.GRAY_ROW : COLOR.WHITE;
+    // シート名は常にシングルクォートで囲む（全角スペース・括弧等の特殊文字対応）
+    const safeSheet = `'${cust.replace(/'/g, "''")}'`;
+
+    ws.getCell(rowNum, 1).value = i + 1;
+    ws.getCell(rowNum, 2).value = cust;
+    ws.getCell(rowNum, 3).value = { formula: `=${safeSheet}!B3` };
+    ws.getCell(rowNum, 4).value = { formula: `=${safeSheet}!B2` };
+    ws.getCell(rowNum, 5).value = { formula: `=IFERROR(INDEX(${safeSheet}!A9:A25,MATCH(MAX(${safeSheet}!AQ9:AQ25),${safeSheet}!AQ9:AQ25,0)),"-")` };
+
+    for (let c = 1; c <= 5; c++) {
+      const cell = ws.getCell(rowNum, c);
+      cell.fill = fill(rowBg);
+      cell.border = thinBorder();
+      cell.font = { name: 'Meiryo UI', size: 10 };
+      cell.alignment = { vertical: 'middle', horizontal: c <= 2 ? 'left' : (c === 5 ? 'left' : 'right') };
+      if (c >= 3 && c <= 4) cell.numFmt = '#,##0';
+    }
+  }
+
+  // --- セクション2: 商品セグメント×顧客 クロス集計 ---
+  const CROSS_HDR_ROW = 27;
+  const CROSS_DATA_ROW = 28;
+
+  ws.getCell(CROSS_HDR_ROW - 1, 1).value = '▶ 商品セグメント別 × 顧客 クロス集計（全期間売上）';
+  ws.getCell(CROSS_HDR_ROW - 1, 1).font = { bold: true, name: 'Meiryo UI', size: 11 };
+
+  // ヘッダー行
+  const crossHdrA = ws.getCell(CROSS_HDR_ROW, 1);
+  crossHdrA.value = '商品セグメント';
+  crossHdrA.font = { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 9 };
+  crossHdrA.fill = fill(COLOR.NAVY);
+  crossHdrA.border = thinBorder();
+  crossHdrA.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+
+  for (let ci = 0; ci < sortedCustomers.length; ci++) {
+    const cell = ws.getCell(CROSS_HDR_ROW, ci + 2);
+    cell.value = sortedCustomers[ci];
+    cell.font = { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 9 };
+    cell.fill = fill(COLOR.NAVY);
+    cell.border = thinBorder();
+    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+  }
+  ws.getRow(CROSS_HDR_ROW).height = 50;
+
+  // セグメントデータ行
+  for (let si = 0; si < SEGMENTS.length; si++) {
+    const seg = SEGMENTS[si];
+    const rowNum = CROSS_DATA_ROW + si;
+    const isGray = si % 2 === 1;
+    const rowBg = isGray ? COLOR.GRAY_ROW : COLOR.WHITE;
+
+    const segCell = ws.getCell(rowNum, 1);
+    segCell.value = seg;
+    segCell.font = { name: 'Meiryo UI', size: 10 };
+    if (isGray) segCell.fill = fill(COLOR.GRAY_ROW);
+    segCell.border = thinBorder();
+    segCell.alignment = { vertical: 'middle', horizontal: 'left' };
+
+    for (let ci = 0; ci < sortedCustomers.length; ci++) {
+      const cust = sortedCustomers[ci];
+      const cell = ws.getCell(rowNum, ci + 2);
+      cell.value = { formula: `=IFERROR(SUMIFS(RawData!$M$2:$M$99999,RawData!$D$2:$D$99999,"${cust}",RawData!$X$2:$X$99999,A${rowNum}),0)` };
+      if (isGray) cell.fill = fill(COLOR.GRAY_ROW);
+      cell.border = thinBorder();
+      cell.numFmt = '#,##0';
+      cell.alignment = { vertical: 'middle', horizontal: 'right' };
+      cell.font = { name: 'Meiryo UI', size: 10 };
+    }
+  }
+
+  // 合計行
+  const sumRowNum = CROSS_DATA_ROW + SEGMENTS.length;
+  const sumLabelCell = ws.getCell(sumRowNum, 1);
+  sumLabelCell.value = '合計';
+  sumLabelCell.font = { bold: true, name: 'Meiryo UI', size: 10 };
+  sumLabelCell.fill = fill(COLOR.BLUE_HEADER);
+  sumLabelCell.border = thinBorder();
+  sumLabelCell.alignment = { vertical: 'middle', horizontal: 'left' };
+
+  for (let ci = 0; ci < sortedCustomers.length; ci++) {
+    const colLetter = excelCol(ci + 2);
+    const cell = ws.getCell(sumRowNum, ci + 2);
+    cell.value = { formula: `=SUM(${colLetter}${CROSS_DATA_ROW}:${colLetter}${sumRowNum - 1})` };
+    cell.font = { bold: true, name: 'Meiryo UI', size: 10 };
+    cell.fill = fill(COLOR.BLUE_HEADER);
+    cell.border = thinBorder();
+    cell.numFmt = '#,##0';
+    cell.alignment = { vertical: 'middle', horizontal: 'right' };
+  }
+
+  // --- セクション3: 営業示唆コメント（削除） ---
+  // コメントセクションは省略
+
+  // --- 列幅 ---
+  ws.getColumn(1).width = 36;
+  for (let ci = 0; ci < sortedCustomers.length; ci++) {
+    ws.getColumn(ci + 2).width = 20;
+  }
+  // ランキング表用（A〜E列に独立した幅を設定）
+  ws.getColumn(1).width = 8;   // 順位
+  ws.getColumn(2).width = 36;  // 顧客名
+  ws.getColumn(3).width = 18;  // 直近年度売上
+  ws.getColumn(4).width = 18;  // 全期間売上
+  ws.getColumn(5).width = 28;  // 主力セグメント
+
+  // 見出し固定
+  ws.views = [{ state: 'frozen', xSplit: 0, ySplit: 1, topLeftCell: 'A2', activeCell: 'A2' }];
+}
+
+// ============================================================
+//  BUILD RAW DATA SHEET
+// ============================================================
+function buildRawDataSheet(wb, ws, rows) {
+  const headers = ['売上NO','売上NO行','売上日','得意先名','売上分類名','現場名','ゼネコン名','担当者名',
+                   '商品名','数量','単位名','売上単価','売上金額','原価単価','原価金額','粗利金額','粗利率',
+                   '明細摘要','仕入NO','更新オペレータ名','施主名','設計者',
+                   '【年月】','【セグメント】']; // W列=年月, X列=セグメント
+
+  // ヘッダー行
+  const hdrRow = ws.getRow(1);
+  for (let i = 0; i < headers.length; i++) {
+    const cell = ws.getCell(1, i + 1);
+    cell.value = headers[i];
+    cell.font = { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 10 };
+    cell.fill = fill(COLOR.NAVY);
+    cell.border = thinBorder();
+    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+  }
+
+  // データ行（全行。対象顧客以外もRawDataに含める）
+  let rowNum = 2;
+  for (const r of rows) {
+    const ym = r.date ? getYearMonth(r.date) : '';
+    const seg = classifySegment(r.product);
+    // 22列の元データ + W列(年月) + X列(セグメント)
+    const rowVals = new Array(24).fill('');
+    rowVals[2]  = r.date;      // C列: 売上日
+    rowVals[3]  = r.customer;  // D列: 得意先名
+    rowVals[8]  = r.product;   // I列: 商品名
+    rowVals[9]  = r.qty;       // J列: 数量
+    rowVals[12] = r.amount;    // M列: 売上金額
+    rowVals[22] = ym;          // W列: 年月テキスト (index 22 = 23列目)
+    rowVals[23] = seg;         // X列: セグメント (index 23 = 24列目)
+    ws.getRow(rowNum).values = rowVals;
+    rowNum++;
+  }
+
+  // 列幅自動調整（主要列）
+  ws.getColumn(3).width = 20;  // 売上日
+  ws.getColumn(4).width = 32;  // 得意先名
+  ws.getColumn(9).width = 40;  // 商品名
+  ws.getColumn(13).width = 14; // 売上金額
+  ws.getColumn(23).width = 12; // 年月
+  ws.getColumn(24).width = 24; // セグメント
+
+  // 見出し固定
+  ws.views = [{ state: 'frozen', xSplit: 0, ySplit: 1, topLeftCell: 'A2', activeCell: 'A2' }];
+}
+
+// ============================================================
+//  MAIN GENERATE FUNCTION
+// ============================================================
+let generatedBlob = null;
+
+async function generateReport(file) {
+  setProgress(0, 'CSVを読み込み中…');
+  log('info', `ファイル読込: ${file.name}`);
+
+  const allRows = await parseCSV(file);
+  log('ok', `総行数: ${allRows.length.toLocaleString()} 件`);
+
+  setProgress(10, 'データを集計中…');
+  const latestFY = getLatestFY(allRows);
+  log('info', `最新会計年度: ${latestFY}年度`);
+
+  const aggData = aggregateData(allRows);
+
+  // 対象顧客のフィルタ行
+  const targetRows = allRows.filter(r => TARGET_CUSTOMERS.includes(r.customer));
+  log('info', `対象顧客行数: ${targetRows.length.toLocaleString()} 件`);
+
+  // 月リスト
+  const months = buildMonthList(targetRows);
+  const colDefs = buildColumnDefs(months);
+  log('info', `集計期間: ${months[0]} ～ ${months[months.length-1]} (${months.length}ヶ月)`);
+
+  setProgress(15, 'Excelファイルを構築中…');
+
+  // 顧客を直近年度売上降順でソート
+  const custLatestSales = TARGET_CUSTOMERS.map(c => {
+    const fyLabel = fiscalYearLabel(latestFY);
+    const fyColIdx = colDefs.findIndex(cd => cd.type === 'fy' && cd.label === fyLabel);
+    if (fyColIdx < 0) return { c, sales: 0 };
+
+    const cData = aggData[c] || {};
+    let total = 0;
+    for (const seg of SEGMENTS) {
+      const segData = cData[seg] || {};
+      for (const [ym, amt] of Object.entries(segData)) {
+        const fy = getFiscalYear(ym + '/01');
+        if (fy === latestFY) total += amt;
+      }
+    }
+    return { c, sales: total };
+  });
+  const sortedCustomers = custLatestSales.sort((a, b) => b.sales - a.sales).map(x => x.c);
+  log('info', `顧客順位1位: ${sortedCustomers[0]}`);
+
+  // ─── ExcelJSでワークブック作成 ───
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'ビルマテル売上分析ツール';
+  wb.created = new Date();
+  wb.calcProperties.fullCalcOnLoad = true;
+
+  setProgress(20, 'サマリシートを作成中…');
+  const wsSummary = wb.addWorksheet('サマリ');
+  buildSummarySheet(wb, wsSummary, sortedCustomers, colDefs, latestFY);
+  log('ok', 'サマリシート作成完了');
+
+  // 顧客シート
+  for (let i = 0; i < sortedCustomers.length; i++) {
+    const cust = sortedCustomers[i];
+    const pct = 20 + Math.round((i / sortedCustomers.length) * 65);
+    setProgress(pct, `顧客シートを作成中… (${i + 1}/${sortedCustomers.length}) ${cust.substring(0, 10)}`);
+    const ws = wb.addWorksheet(cust);
+    buildCustomerSheet(wb, ws, cust, colDefs, aggData, allRows, latestFY);
+    log('ok', `  ✓ ${cust}`);
+    // UIを更新するために少し待つ
+    if (i % 3 === 0) await sleep(0);
+  }
+
+  setProgress(87, 'RawDataシートを作成中…');
+  const wsRaw = wb.addWorksheet('RawData');
+  buildRawDataSheet(wb, wsRaw, allRows);
+  log('ok', 'RawDataシート作成完了');
+
+  setProgress(95, 'ファイルを保存中…');
+  const buffer = await wb.xlsx.writeBuffer();
+  generatedBlob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  });
+
+  setProgress(100, '完了');
+  log('ok', `✅ 生成完了: ${sortedCustomers.length + 2}シート`);
+
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+  const fileName = `顧客×商品セグメント別売上分析レポート_${dateStr}.xlsx`;
+
+  document.getElementById('downloadSub').textContent =
+    `${sortedCustomers.length + 2}シート（顧客${sortedCustomers.length}社 + サマリ + RawData）`;
+  document.getElementById('btnDownload').onclick = () => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(generatedBlob);
+    a.download = fileName;
+    a.click();
+  };
+
+  return true;
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ─── UI Helpers ───
+function setProgress(pct, label) {
+  document.getElementById('progressBar').style.width = `${pct}%`;
+  document.getElementById('progressStep').textContent = label;
+  document.getElementById('progressPct').textContent = `${pct}%`;
+}
+
+function log(type, msg) {
+  const logArea = document.getElementById('logArea');
+  const entry = document.createElement('div');
+  entry.className = `log-entry ${type}`;
+  entry.textContent = msg;
+  logArea.appendChild(entry);
+  logArea.scrollTop = logArea.scrollHeight;
+}
+
+// ─── UI Events ───
+let selectedFile = null;
+
+document.getElementById('fileInput').addEventListener('change', e => {
+  handleFile(e.target.files[0]);
+});
+
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  handleFile(e.dataTransfer.files[0]);
+});
+
+document.getElementById('removeFile').addEventListener('click', () => {
+  selectedFile = null;
+  document.getElementById('fileSelected').classList.remove('show');
+  document.getElementById('btnGenerate').disabled = true;
+  document.getElementById('fileInput').value = '';
+});
+
+function handleFile(file) {
+  if (!file) return;
+  selectedFile = file;
+  document.getElementById('fileName').textContent = file.name;
+  document.getElementById('fileSize').textContent = `${(file.size / 1024).toFixed(1)} KB`;
+  document.getElementById('fileSelected').classList.add('show');
+  document.getElementById('btnGenerate').disabled = false;
+}
+
+document.getElementById('btnGenerate').addEventListener('click', async () => {
+  if (!selectedFile) return;
+  const btn = document.getElementById('btnGenerate');
+  btn.disabled = true;
+
+  document.getElementById('progressWrap').classList.add('show');
+  document.getElementById('logArea').classList.add('show');
+  document.getElementById('logArea').innerHTML = '';
+  document.getElementById('downloadWrap').classList.remove('show');
+
+  try {
+    await generateReport(selectedFile);
+    document.getElementById('downloadWrap').classList.add('show');
+  } catch(e) {
+    log('err', `エラー: ${e.message}`);
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
