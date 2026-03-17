@@ -348,8 +348,12 @@
     <div class="download-title">レポート生成完了！</div>
     <div class="download-sub" id="downloadSub">—</div>
     <button class="btn-download" id="btnDownload">
-      <span>⬇️</span> Excelファイルをダウンロード
+      <span>⬇️</span> Excelファイルをダウンロード（新しいタブで開く）
     </button>
+    <p style="margin-top:12px;font-size:11px;color:#5a8f4a;">
+      ※ 新しいタブでファイルが開きます。ブラウザの「名前をつけて保存」(Ctrl+S / Cmd+S)で保存してください。<br>
+      ※ ポップアップがブロックされた場合はブラウザのアドレスバー右側の許可ボタンをクリックしてください。
+    </p>
   </div>
 
   <div class="privacy">
@@ -1154,10 +1158,22 @@ async function generateReport(file) {
   document.getElementById('downloadSub').textContent =
     `${sortedCustomers.length + 2}シート（顧客${sortedCustomers.length}社 + サマリ + RawData）`;
   document.getElementById('btnDownload').onclick = () => {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(generatedBlob);
-    a.download = fileName;
-    a.click();
+    const url = URL.createObjectURL(generatedBlob);
+    // iframeのダウンロード制限を回避するため新しいタブで開く
+    const newTab = window.open(url, '_blank');
+    if (!newTab) {
+      // ポップアップブロックされた場合はフォールバック
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+    // メモリ解放は少し遅らせる
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
   };
 
   return true;
