@@ -35,7 +35,6 @@
     min-height: 100vh;
   }
 
-  /* ─── Header ─── */
   header {
     background: var(--navy);
     padding: 0 40px;
@@ -63,14 +62,12 @@
     font-family: 'Inter', sans-serif;
   }
 
-  /* ─── Main ─── */
   main {
     max-width: 960px;
     margin: 0 auto;
     padding: 48px 24px 80px;
   }
 
-  /* ─── Hero ─── */
   .hero {
     text-align: center;
     margin-bottom: 48px;
@@ -92,7 +89,6 @@
     max-width: 520px; margin: 0 auto;
   }
 
-  /* ─── Upload Card ─── */
   .card {
     background: var(--surface);
     border-radius: 16px;
@@ -147,7 +143,6 @@
     color: #888; cursor: pointer; font-size: 18px; padding: 4px;
   }
 
-  /* ─── Generate Button ─── */
   .btn-generate {
     width: 100%;
     background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
@@ -164,7 +159,6 @@
   }
   .btn-generate:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-  /* ─── Progress ─── */
   .progress-wrap {
     display: none; margin-top: 24px;
   }
@@ -182,7 +176,6 @@
     justify-content: space-between;
   }
 
-  /* ─── Log ─── */
   .log-area {
     display: none; margin-top: 20px;
     background: #f8fafc; border: 1px solid var(--border);
@@ -196,7 +189,6 @@
   .log-entry.err { color: #dc3545; }
   .log-entry.info { color: var(--navy); }
 
-  /* ─── Download ─── */
   .download-wrap {
     display: none; text-align: center; padding: 32px;
     background: linear-gradient(135deg, #e8f4ea 0%, #d4eeda 100%);
@@ -215,7 +207,6 @@
   }
   .btn-download:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(40,167,69,0.4); }
 
-  /* ─── Info panel ─── */
   .info-grid {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
     margin-bottom: 24px;
@@ -231,7 +222,6 @@
   }
   .info-label { font-size: 12px; color: var(--text-muted); }
 
-  /* ─── Sheet list ─── */
   .sheet-list {
     display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;
   }
@@ -241,7 +231,6 @@
   }
   .sheet-chip.special { background: var(--accent); color: var(--navy-dark); }
 
-  /* ─── Privacy notice ─── */
   .privacy {
     text-align: center; font-size: 12px; color: var(--text-muted);
     margin-top: 32px; display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -260,7 +249,7 @@
 <header>
   <div class="logo-icon">B</div>
   <h1>ビルマテル｜顧客×商品セグメント別売上分析レポート 生成ツール</h1>
-  <span class="badge">20社版 v2.0</span>
+  <span class="badge">20社版 v3.0</span>
 </header>
 
 <main>
@@ -271,7 +260,6 @@
     顧客×商品セグメント別×月次の売上分析レポート（Excel）を自動生成します。</p>
   </div>
 
-  <!-- 生成されるシート構成 -->
   <div class="card">
     <div class="card-title">生成されるシート構成</div>
     <div class="info-grid">
@@ -300,11 +288,11 @@
       ✦ 月次売上・年度小計・全期間合計をSUMIFS数式で参照 &nbsp;
       ✦ 顧客サマリー（全期間売上・直近年度売上・商品数・月平均売上）&nbsp;
       ✦ 商品セグメントは売上降順で自動ソート &nbsp;
-      ✦ 営業示唆コメント自動生成
+      ✦ 売上・粗利・粗利率の3表を個社別シートに出力 &nbsp;
+      ✦ サマリに年度別売上・粗利・粗利率ランキング表を出力
     </div>
   </div>
 
-  <!-- アップロード -->
   <div class="card">
     <div class="card-title">CSVファイルをアップロード</div>
     <div class="drop-zone" id="dropZone">
@@ -323,12 +311,10 @@
     </div>
   </div>
 
-  <!-- 生成ボタン -->
   <button class="btn-generate" id="btnGenerate" disabled>
     <span>📊</span> Excelレポートを生成
   </button>
 
-  <!-- プログレス -->
   <div class="progress-wrap" id="progressWrap">
     <div class="progress-bar-bg">
       <div class="progress-bar" id="progressBar"></div>
@@ -339,10 +325,8 @@
     </div>
   </div>
 
-  <!-- ログ -->
   <div class="log-area" id="logArea"></div>
 
-  <!-- ダウンロード -->
   <div class="download-wrap" id="downloadWrap">
     <div class="download-check">✅</div>
     <div class="download-title">レポート生成完了！</div>
@@ -373,14 +357,14 @@ const TARGET_CUSTOMERS = [
   "住友林業緑化株式会社資材事業部 大阪営業部",
   "岡三ﾘﾋﾞｯｸ株式会社",
   "ｲﾋﾞﾃﾞﾝｸﾞﾘｰﾝﾃｯｸ株式会社 東京支店",
-  "田島緑化プラス株式会社",          // CSV実表記（全角）
+  "田島緑化プラス株式会社",
   "ｱｺﾞﾗ造園株式会社",
   "箱根植木株式会社",
   "東武緑地株式会社",
-  "綿半ｿﾘｭｰｼｮﾝｽﾞ株式会社　緑化セクション", // 全角スペース＋全角カタカナ
+  "綿半ｿﾘｭｰｼｮﾝｽﾞ株式会社　緑化セクション",
   "株式会社かたばみ",
   "笠原産業株式会社",
-  "ﾀﾞｲﾄｳﾃｸﾉｸﾞﾘｰﾝ株式会社",          // CSV実表記（括弧なし）
+  "ﾀﾞｲﾄｳﾃｸﾉｸﾞﾘｰﾝ株式会社",
   "株式会社ｸﾞﾘﾑ",
   "株式会社ｸﾞﾘｰﾝｱﾝﾄﾞｱｰﾂ",
   "共同ｶｲﾃｯｸ株式会社 環境部",
@@ -409,20 +393,25 @@ const SEGMENTS = [
   "⑰ その他（LB）",
 ];
 
-// 色定数
 const COLOR = {
-  NAVY:        "FF2F5496",
-  NAVY_LIGHT:  "FF4472C4",
-  ACCENT:      "FFFFD966",
-  GREEN_SOFT:  "FFE2EFDA",
-  BLUE_SOFT:   "FFD9E1F2",
-  BLUE_HEADER: "FFBDD7EE",
-  GRAY_ROW:    "FFF8F8F8",  // 非常に薄いグレー（視認性確保）
-  WHITE:       "FFFFFFFF",
+  NAVY:         "FF2F5496",
+  NAVY_LIGHT:   "FF4472C4",
+  ACCENT:       "FFFFD966",
+  GREEN_SOFT:   "FFE2EFDA",
+  BLUE_SOFT:    "FFD9E1F2",
+  BLUE_HEADER:  "FFBDD7EE",
+  GRAY_ROW:     "FFF8F8F8",
+  WHITE:        "FFFFFFFF",
+  // 粗利テーブル用
+  GREEN_HDR:    "FF375623",  // 濃緑（粗利ヘッダー）
+  GREEN_LIGHT:  "FFE2EFDA",  // 薄緑（粗利データ背景）
+  // 粗利率テーブル用
+  TEAL_HDR:     "FF1F4E79",  // 濃ネイビー（粗利率ヘッダー）
+  ORANGE_SOFT:  "FFFFF2CC",  // 薄黄（粗利率データ背景）
 };
 
 // ============================================================
-//  SEGMENT CLASSIFIER  (NFKC正規化 + キーワードマッチ)
+//  SEGMENT CLASSIFIER
 // ============================================================
 const SEGMENT_RULES = [
   ["① 軽量土壌（CA+）",           ["ソイルCA","CA改良土壌","菜園用土壌","果樹園用土壌","川砂ベース土壌","CAプラス改良土壌"]],
@@ -445,7 +434,6 @@ const SEGMENT_RULES = [
 ];
 
 function nfkc(s) {
-  // 簡易NFKC正規化（ブラウザはnormalize対応）
   try { return s.normalize('NFKC').trim(); } catch(e) { return s.trim(); }
 }
 
@@ -456,19 +444,17 @@ function classifySegment(productName) {
       if (n.includes(nfkc(kw))) return seg;
     }
   }
-  return "⑯ 諸経費・値引き"; // デフォルト
+  return "⑯ 諸経費・値引き";
 }
 
 // ============================================================
 //  FISCAL YEAR HELPERS
 // ============================================================
-// ビルマテル会計年度: 3月〜翌2月 → XXXX年度 = 3月始まり
 function getFiscalYear(dateStr) {
-  // dateStr: "2024/03/15 0:00:00" or "2024-03-15"
   const d = new Date(dateStr.replace(/\s.*/, '').replace(/\//g, '-'));
   const year = d.getFullYear();
-  const month = d.getMonth() + 1; // 1-12
-  return month >= 3 ? year + 1 : year; // 3月〜 → 翌年度
+  const month = d.getMonth() + 1;
+  return month >= 3 ? year + 1 : year;
 }
 
 function getYearMonth(dateStr) {
@@ -481,10 +467,9 @@ function getYearMonth(dateStr) {
 function fiscalYearLabel(fy) { return `${fy}年度計`; }
 
 // ============================================================
-//  CSV PARSER (Shift-JIS / UTF-8 自動判定)
+//  CSV PARSER
 // ============================================================
 async function parseCSV(file) {
-  // Shift-JISを試みる
   let text;
   try {
     text = await readFileAs(file, 'shift-jis');
@@ -498,19 +483,19 @@ async function parseCSV(file) {
   const lines = text.split(/\r?\n/);
   if (lines.length < 2) throw new Error('CSVの行数が少なすぎます');
 
-  const headers = parseLine(lines[0]);
   const rows = [];
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
     const cols = parseLine(line);
-    if (cols.length < 13) continue;
+    if (cols.length < 16) continue;
     rows.push({
-      date:     cols[2] || '',  // C列 (0-indexed: 2)
-      customer: cols[3] || '',  // D列
-      product:  cols[8] || '',  // I列
-      qty:      parseFloat(cols[9]) || 0,  // J列
-      amount:   parseFloat(cols[12]) || 0, // M列
+      date:     cols[2]  || '',   // C列: 売上日
+      customer: cols[3]  || '',   // D列: 得意先名
+      product:  cols[8]  || '',   // I列: 商品名
+      qty:      parseFloat(cols[9])  || 0,  // J列: 数量
+      amount:   parseFloat(cols[12]) || 0,  // M列: 売上金額
+      grossProfit: parseFloat(cols[15]) || 0, // P列: 粗利金額
     });
   }
   return rows;
@@ -549,31 +534,25 @@ function buildMonthList(rows) {
   return Array.from(months).sort();
 }
 
-// 月リストに年度小計を挟んだ「列定義」を返す
 function buildColumnDefs(months) {
-  const cols = []; // { type:'month'|'fy', label, fy }
+  const cols = [];
   let lastFY = null;
   for (const m of months) {
     const [y, mo] = m.split('/').map(Number);
     const fy = mo >= 3 ? y + 1 : y;
-    // 年度が変わる（またはmo===2で前年度末）タイミングで年度計を挿入
     if (lastFY !== null && fy !== lastFY) {
       cols.push({ type:'fy', label: fiscalYearLabel(lastFY), fy: lastFY });
     }
     cols.push({ type:'month', label: m, fy });
     lastFY = fy;
   }
-  // 最後の年度計
   if (lastFY !== null) {
     cols.push({ type:'fy', label: fiscalYearLabel(lastFY), fy: lastFY });
   }
   return cols;
 }
 
-// customer × segment × yearMonth の売上合計
 function aggregateData(rows) {
-  // rows: [{date, customer, product, amount}]
-  // まずセグメントを付与
   const enriched = rows.map(r => ({
     ...r,
     segment: classifySegment(r.product),
@@ -581,7 +560,6 @@ function aggregateData(rows) {
     fy: r.date ? getFiscalYear(r.date) : null,
   })).filter(r => r.ym && r.amount !== 0);
 
-  // 集計: { customer -> { segment -> { ym -> amount } } }
   const data = {};
   for (const r of enriched) {
     if (!data[r.customer]) data[r.customer] = {};
@@ -591,7 +569,6 @@ function aggregateData(rows) {
   return data;
 }
 
-// 直近年度を返す（データ中の最大年度）
 function getLatestFY(rows) {
   let maxFY = 0;
   for (const r of rows) {
@@ -601,14 +578,8 @@ function getLatestFY(rows) {
 }
 
 // ============================================================
-//  EXCEL BUILDER
+//  EXCEL STYLE HELPERS
 // ============================================================
-
-// スタイルヘルパー
-function hdrFont(wb) { return { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 10 }; }
-function boldFont(wb) { return { bold: true, name: 'Meiryo UI', size: 10 }; }
-function normalFont(wb) { return { name: 'Meiryo UI', size: 10 }; }
-
 function fill(argb) {
   return { type: 'pattern', pattern: 'solid', fgColor: { argb } };
 }
@@ -618,8 +589,8 @@ function thinBorder() {
   return { top: s, left: s, bottom: s, right: s };
 }
 
-function applyHdrStyle(cell, bgArgb) {
-  cell.font = { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 10 };
+function applyHdrStyle(cell, bgArgb, textArgb) {
+  cell.font = { bold: true, color: { argb: textArgb || COLOR.WHITE }, name: 'Meiryo UI', size: 10 };
   cell.fill = fill(bgArgb);
   cell.border = thinBorder();
   cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: false };
@@ -640,223 +611,9 @@ function applyLabelStyle(cell, bgArgb) {
   cell.alignment = { vertical: 'middle', horizontal: 'left' };
 }
 
-// ============================================================
-//  BUILD CUSTOMER SHEET
-// ============================================================
-function buildCustomerSheet(wb, ws, customerName, colDefs, aggData, allRows, latestFY) {
-  const cData = aggData[customerName] || {};
+function boldFont() { return { bold: true, name: 'Meiryo UI', size: 10 }; }
 
-  // --- セグメント総売上を計算して降順ソート ---
-  const segTotals = {};
-  for (const seg of SEGMENTS) {
-    const segData = cData[seg] || {};
-    segTotals[seg] = Object.values(segData).reduce((a, b) => a + b, 0);
-  }
-  const sortedSegs = [...SEGMENTS].sort((a, b) => segTotals[b] - segTotals[a]);
-
-  // --- 列インデックスのマッピング ---
-  // A=1: セグメント名, B=2〜: 月/年度計, 最後から2番目=年度計, 最後=総売上
-  const DATA_START_COL = 2; // B列
-  const totalSegCol = DATA_START_COL + colDefs.length; // 総売上列
-  const totalSegs = sortedSegs.length; // = 17
-  const DATA_START_ROW = 9;
-  const DATA_END_ROW = DATA_START_ROW + totalSegs - 1;
-
-  // --- 行1: タイトル ---
-  const r1 = ws.getRow(1);
-  const titleCell = ws.getCell('A1');
-  titleCell.value = `【顧客サマリ】${customerName}`;
-  titleCell.font = { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 12 };
-  titleCell.fill = fill(COLOR.NAVY);
-  titleCell.alignment = { vertical: 'middle', horizontal: 'left' };
-  // タイトルセル結合
-  ws.mergeCells(1, 1, 1, totalSegCol);
-
-  // --- 行2〜5: 顧客サマリー ---
-  const summaryDefs = [
-    ['全期間売上',          `=AQ${DATA_END_ROW + 1}`],
-    ['直近年度売上',        `=AP${DATA_END_ROW + 1}`],  // 最後の年度計（AP列想定）
-    ['商品数（セグメント数）', `=COUNTIF(AQ${DATA_START_ROW}:AQ${DATA_END_ROW},">"&0)`],
-    ['月平均売上',          `=IFERROR(AQ${DATA_END_ROW + 1}/${colDefs.filter(c=>c.type==='month').length},0)`],
-  ];
-
-  // サマリー行は後で列数が確定してから正確な数式を入れるため、
-  // まずプレースホルダーを設定
-  for (let i = 0; i < 4; i++) {
-    const row = i + 2;
-    const labelCell = ws.getCell(row, 1);
-    labelCell.value = summaryDefs[i][0];
-    labelCell.font = { bold: true, name: 'Meiryo UI', size: 10 };
-    labelCell.fill = fill(COLOR.BLUE_SOFT);
-    labelCell.alignment = { vertical: 'middle', horizontal: 'left' };
-    labelCell.border = thinBorder();
-
-    const valCell = ws.getCell(row, 2);
-    valCell.value = { formula: summaryDefs[i][1] };
-    valCell.font = { bold: true, name: 'Meiryo UI', size: 10 };
-    valCell.fill = fill(COLOR.GREEN_SOFT);
-    valCell.numFmt = i === 2 ? '0' : '#,##0';
-    valCell.alignment = { vertical: 'middle', horizontal: 'right' };
-    valCell.border = thinBorder();
-  }
-
-  // --- 行8: ヘッダー ---
-  const hdrRow = ws.getRow(8);
-  const hdrA = ws.getCell(8, 1);
-  hdrA.value = '商品セグメント';
-  applyHdrStyle(hdrA, COLOR.NAVY);
-  hdrA.alignment = { vertical: 'middle', horizontal: 'left', wrapText: false };
-
-  for (let ci = 0; ci < colDefs.length; ci++) {
-    const col = colDefs[ci];
-    const cell = ws.getCell(8, DATA_START_COL + ci);
-    cell.value = col.label;
-    if (col.type === 'fy') {
-      cell.font = { bold: true, color: { argb: 'FF000000' }, name: 'Meiryo UI', size: 10 };
-      cell.fill = fill(COLOR.ACCENT);
-    } else {
-      applyHdrStyle(cell, COLOR.NAVY);
-    }
-    cell.border = thinBorder();
-    cell.alignment = { vertical: 'middle', horizontal: 'center' };
-  }
-
-  // 総売上ヘッダー
-  const totalHdr = ws.getCell(8, totalSegCol);
-  totalHdr.value = '商品別総売上';
-  applyHdrStyle(totalHdr, COLOR.NAVY);
-
-  // --- 行9〜: セグメントデータ ---
-  // RawDataシートのM列が売上金額、D列が顧客名、C列が年月、X列がセグメント
-  const rawDataRange = `RawData!$M$2:$M$99999`;
-  const rawCustRange = `RawData!$D$2:$D$99999`;
-  const rawDateRange = `RawData!$C$2:$C$99999`;
-  const rawSegRange  = `RawData!$X$2:$X$99999`;
-
-  for (let si = 0; si < sortedSegs.length; si++) {
-    const seg = sortedSegs[si];
-    const rowNum = DATA_START_ROW + si;
-    const isGray = si % 2 === 1;
-    const rowBg = isGray ? COLOR.GRAY_ROW : COLOR.WHITE;
-
-    // A列: セグメント名
-    const labelCell = ws.getCell(rowNum, 1);
-    labelCell.value = seg;
-    applyLabelStyle(labelCell, rowBg);
-
-    // 月別・年度計列
-    for (let ci = 0; ci < colDefs.length; ci++) {
-      const col = colDefs[ci];
-      const cell = ws.getCell(rowNum, DATA_START_COL + ci);
-      const colBg = col.type === 'fy' ? COLOR.ACCENT : (isGray ? COLOR.GRAY_ROW : COLOR.WHITE);
-
-      if (col.type === 'month') {
-        // SUMIFS数式: 顧客名 AND 年月(TEXT列) AND セグメント
-        // RawDataのW列(23列目)に "YYYY/MM" 形式のテキスト年月列を格納しSUMIFSで参照
-        const rawYMRange = `RawData!$W$2:$W$99999`;
-        const ymVal = col.label; // "2024/03"
-        cell.value = {
-          formula: `=IFERROR(SUMIFS(${rawDataRange},${rawCustRange},"${customerName}",${rawYMRange},"${ymVal}",${rawSegRange},"${seg}"),0)`
-        };
-      } else {
-        // 年度計: その年度の月列をSUM
-        const fyCols = [];
-        for (let ci2 = 0; ci2 < colDefs.length; ci2++) {
-          if (colDefs[ci2].type === 'month' && colDefs[ci2].fy === col.fy) {
-            fyCols.push(ci2);
-          }
-        }
-        if (fyCols.length > 0) {
-          const firstColLetter = excelCol(DATA_START_COL + fyCols[0]);
-          const lastColLetter  = excelCol(DATA_START_COL + fyCols[fyCols.length - 1]);
-          cell.value = { formula: `=SUM(${firstColLetter}${rowNum}:${lastColLetter}${rowNum})` };
-        } else {
-          cell.value = 0;
-        }
-        cell.font = { bold: false, name: 'Meiryo UI', size: 10 };
-      }
-
-      cell.fill = fill(colBg);
-      cell.border = thinBorder();
-      cell.alignment = { vertical: 'middle', horizontal: 'right' };
-      cell.numFmt = '#,##0';
-    }
-
-    // 総売上列
-    const totalCell = ws.getCell(rowNum, totalSegCol);
-    totalCell.value = { formula: `=IFERROR(SUMIFS(${rawDataRange},${rawCustRange},"${customerName}",${rawSegRange},"${seg}"),0)` };
-    totalCell.fill = fill(isGray ? COLOR.GRAY_ROW : COLOR.WHITE);
-    totalCell.border = thinBorder();
-    totalCell.numFmt = '#,##0';
-    totalCell.alignment = { vertical: 'middle', horizontal: 'right' };
-  }
-
-  // --- 合計行 ---
-  const sumRow = DATA_END_ROW + 1;
-  const sumLabelCell = ws.getCell(sumRow, 1);
-  sumLabelCell.value = '合計';
-  sumLabelCell.font = boldFont();
-  sumLabelCell.fill = fill(COLOR.BLUE_HEADER);
-  sumLabelCell.border = thinBorder();
-  sumLabelCell.alignment = { vertical: 'middle', horizontal: 'left' };
-
-  for (let ci = 0; ci < colDefs.length; ci++) {
-    const cell = ws.getCell(sumRow, DATA_START_COL + ci);
-    const colLetter = excelCol(DATA_START_COL + ci);
-    cell.value = { formula: `=SUM(${colLetter}${DATA_START_ROW}:${colLetter}${DATA_END_ROW})` };
-    cell.font = boldFont();
-    cell.fill = fill(colDefs[ci].type === 'fy' ? COLOR.ACCENT : COLOR.BLUE_HEADER);
-    cell.border = thinBorder();
-    cell.numFmt = '#,##0';
-    cell.alignment = { vertical: 'middle', horizontal: 'right' };
-  }
-
-  // 総売上合計
-  const totalSumCell = ws.getCell(sumRow, totalSegCol);
-  const totalColLetter = excelCol(totalSegCol);
-  totalSumCell.value = { formula: `=SUM(${totalColLetter}${DATA_START_ROW}:${totalColLetter}${DATA_END_ROW})` };
-  totalSumCell.font = boldFont();
-  totalSumCell.fill = fill(COLOR.BLUE_HEADER);
-  totalSumCell.border = thinBorder();
-  totalSumCell.numFmt = '#,##0';
-  totalSumCell.alignment = { vertical: 'middle', horizontal: 'right' };
-
-  // サマリー数式を正確な列に修正
-  // 直近年度計列（最後のfy列）を探す
-  let lastFYColIdx = -1;
-  for (let ci = colDefs.length - 1; ci >= 0; ci--) {
-    if (colDefs[ci].type === 'fy') { lastFYColIdx = ci; break; }
-  }
-  if (lastFYColIdx >= 0) {
-    const lastFYColLetter = excelCol(DATA_START_COL + lastFYColIdx);
-    // 全期間売上
-    ws.getCell(2, 2).value = { formula: `=${totalColLetter}${sumRow}` };
-    // 直近年度売上
-    ws.getCell(3, 2).value = { formula: `=${lastFYColLetter}${sumRow}` };
-    // 商品数
-    ws.getCell(4, 2).value = { formula: `=COUNTIF(${totalColLetter}${DATA_START_ROW}:${totalColLetter}${DATA_END_ROW},">"&0)` };
-    // 月平均
-    const monthCount = colDefs.filter(c => c.type === 'month').length;
-    ws.getCell(5, 2).value = { formula: `=IFERROR(${totalColLetter}${sumRow}/${monthCount},0)` };
-  }
-
-  // --- 列幅（###が出ないよう十分な幅に設定）---
-  ws.getColumn(1).width = 32;  // セグメント名
-  ws.getColumn(2).width = 18;  // B列（サマリー値・最初の月データ）
-  for (let ci = 1; ci < colDefs.length; ci++) {
-    ws.getColumn(DATA_START_COL + ci).width = colDefs[ci].type === 'fy' ? 15 : 13;
-  }
-  ws.getColumn(totalSegCol).width = 16;
-
-  // --- 行高さ ---
-  ws.getRow(1).height = 24;
-  ws.getRow(8).height = 22;
-
-  // --- 見出し行固定 ---
-  ws.views = [{ state: 'frozen', xSplit: 1, ySplit: 8, topLeftCell: 'B9', activeCell: 'B9' }];
-}
-
-// Excel列番号 → アルファベット変換 (1=A, 27=AA, ...)
+// Excel列番号 → アルファベット変換
 function excelCol(n) {
   let s = '';
   while (n > 0) {
@@ -868,11 +625,382 @@ function excelCol(n) {
 }
 
 // ============================================================
+//  BUILD CUSTOMER SHEET
+// ============================================================
+function buildCustomerSheet(wb, ws, customerName, colDefs, aggData, allRows, latestFY) {
+  const cData = aggData[customerName] || {};
+
+  // セグメント総売上で降順ソート
+  const segTotals = {};
+  for (const seg of SEGMENTS) {
+    const segData = cData[seg] || {};
+    segTotals[seg] = Object.values(segData).reduce((a, b) => a + b, 0);
+  }
+  const sortedSegs = [...SEGMENTS].sort((a, b) => segTotals[b] - segTotals[a]);
+
+  const DATA_START_COL = 2;
+  const totalSegCol = DATA_START_COL + colDefs.length;
+  const totalSegs = sortedSegs.length;
+  const DATA_START_ROW = 9;
+  const DATA_END_ROW = DATA_START_ROW + totalSegs - 1;
+  const SUM_ROW = DATA_END_ROW + 1;
+
+  // RawData参照範囲
+  const rawAmtRange  = `RawData!$M$2:$M$99999`;
+  const rawGPRange   = `RawData!$P$2:$P$99999`;
+  const rawCustRange = `RawData!$D$2:$D$99999`;
+  const rawYMRange   = `RawData!$W$2:$W$99999`;
+  const rawSegRange  = `RawData!$X$2:$X$99999`;
+
+  // ──────────────────────────────────────
+  // 行1: タイトル
+  // ──────────────────────────────────────
+  const titleCell = ws.getCell('A1');
+  titleCell.value = `【顧客サマリ】${customerName}`;
+  titleCell.font = { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 12 };
+  titleCell.fill = fill(COLOR.NAVY);
+  titleCell.alignment = { vertical: 'middle', horizontal: 'left' };
+  ws.mergeCells(1, 1, 1, totalSegCol);
+  ws.getRow(1).height = 24;
+
+  // ──────────────────────────────────────
+  // 行2〜5: 顧客サマリー（プレースホルダー、後で確定）
+  // ──────────────────────────────────────
+  const summaryItems = [
+    ['全期間売上', ''],
+    ['直近年度売上', ''],
+    ['商品数（セグメント数）', ''],
+    ['月平均売上', ''],
+  ];
+  for (let i = 0; i < 4; i++) {
+    const row = i + 2;
+    const labelCell = ws.getCell(row, 1);
+    labelCell.value = summaryItems[i][0];
+    labelCell.font = { bold: true, name: 'Meiryo UI', size: 10 };
+    labelCell.fill = fill(COLOR.BLUE_SOFT);
+    labelCell.alignment = { vertical: 'middle', horizontal: 'left' };
+    labelCell.border = thinBorder();
+
+    const valCell = ws.getCell(row, 2);
+    valCell.font = { bold: true, name: 'Meiryo UI', size: 10 };
+    valCell.fill = fill(COLOR.GREEN_SOFT);
+    valCell.numFmt = i === 2 ? '0' : '#,##0';
+    valCell.alignment = { vertical: 'middle', horizontal: 'right' };
+    valCell.border = thinBorder();
+  }
+
+  // ──────────────────────────────────────
+  // 【売上表】
+  // ──────────────────────────────────────
+  // 行7: セクション見出し
+  const salesTitleCell = ws.getCell(7, 1);
+  salesTitleCell.value = '▼ 売上金額';
+  salesTitleCell.font = { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 11 };
+  salesTitleCell.fill = fill(COLOR.NAVY);
+  salesTitleCell.alignment = { vertical: 'middle', horizontal: 'left' };
+  ws.mergeCells(7, 1, 7, totalSegCol);
+  ws.getRow(7).height = 20;
+
+  // 行8: ヘッダー
+  buildTableHeader(ws, 8, colDefs, totalSegCol, DATA_START_COL, '商品セグメント', COLOR.NAVY);
+
+  // 行9〜: データ（売上）
+  for (let si = 0; si < sortedSegs.length; si++) {
+    const seg = sortedSegs[si];
+    const rowNum = DATA_START_ROW + si;
+    const isGray = si % 2 === 1;
+    const rowBg = isGray ? COLOR.GRAY_ROW : COLOR.WHITE;
+
+    const labelCell = ws.getCell(rowNum, 1);
+    labelCell.value = seg;
+    applyLabelStyle(labelCell, rowBg);
+
+    for (let ci = 0; ci < colDefs.length; ci++) {
+      const col = colDefs[ci];
+      const cell = ws.getCell(rowNum, DATA_START_COL + ci);
+      const colBg = col.type === 'fy' ? COLOR.ACCENT : rowBg;
+
+      if (col.type === 'month') {
+        cell.value = { formula: `=IFERROR(SUMIFS(${rawAmtRange},${rawCustRange},"${customerName}",${rawYMRange},"${col.label}",${rawSegRange},"${seg}"),0)` };
+      } else {
+        const fyCols = colDefs.map((c,i) => c.type==='month' && c.fy===col.fy ? i : -1).filter(i=>i>=0);
+        if (fyCols.length > 0) {
+          const fl = excelCol(DATA_START_COL + fyCols[0]);
+          const ll = excelCol(DATA_START_COL + fyCols[fyCols.length-1]);
+          cell.value = { formula: `=SUM(${fl}${rowNum}:${ll}${rowNum})` };
+        } else { cell.value = 0; }
+        cell.font = { bold: false, name: 'Meiryo UI', size: 10 };
+      }
+      cell.fill = fill(colBg);
+      cell.border = thinBorder();
+      cell.alignment = { vertical: 'middle', horizontal: 'right' };
+      cell.numFmt = '#,##0';
+    }
+
+    // 総売上列
+    const totalCell = ws.getCell(rowNum, totalSegCol);
+    totalCell.value = { formula: `=IFERROR(SUMIFS(${rawAmtRange},${rawCustRange},"${customerName}",${rawSegRange},"${seg}"),0)` };
+    totalCell.fill = fill(rowBg);
+    totalCell.border = thinBorder();
+    totalCell.numFmt = '#,##0';
+    totalCell.alignment = { vertical: 'middle', horizontal: 'right' };
+  }
+
+  // 売上合計行
+  buildSumRow(ws, SUM_ROW, DATA_START_ROW, DATA_END_ROW, DATA_START_COL, colDefs, totalSegCol, COLOR.BLUE_HEADER, '合計');
+
+  // サマリー数式を確定
+  let lastFYColIdx = -1;
+  for (let ci = colDefs.length - 1; ci >= 0; ci--) {
+    if (colDefs[ci].type === 'fy') { lastFYColIdx = ci; break; }
+  }
+  const totalColLetter = excelCol(totalSegCol);
+  if (lastFYColIdx >= 0) {
+    const lastFYColLetter = excelCol(DATA_START_COL + lastFYColIdx);
+    ws.getCell(2, 2).value = { formula: `=${totalColLetter}${SUM_ROW}` };
+    ws.getCell(3, 2).value = { formula: `=${lastFYColLetter}${SUM_ROW}` };
+    ws.getCell(4, 2).value = { formula: `=COUNTIF(${totalColLetter}${DATA_START_ROW}:${totalColLetter}${DATA_END_ROW},">"&0)` };
+    const monthCount = colDefs.filter(c => c.type === 'month').length;
+    ws.getCell(5, 2).value = { formula: `=IFERROR(${totalColLetter}${SUM_ROW}/${monthCount},0)` };
+  }
+
+  // ──────────────────────────────────────
+  // 【粗利金額表】 (SUM_ROW + 3 から)
+  // ──────────────────────────────────────
+  const GP_TITLE_ROW  = SUM_ROW + 3;
+  const GP_HDR_ROW    = GP_TITLE_ROW + 1;
+  const GP_START_ROW  = GP_HDR_ROW + 1;
+  const GP_END_ROW    = GP_START_ROW + totalSegs - 1;
+  const GP_SUM_ROW    = GP_END_ROW + 1;
+
+  const gpTitleCell = ws.getCell(GP_TITLE_ROW, 1);
+  gpTitleCell.value = '▼ 粗利金額';
+  gpTitleCell.font = { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 11 };
+  gpTitleCell.fill = fill(COLOR.GREEN_HDR);
+  gpTitleCell.alignment = { vertical: 'middle', horizontal: 'left' };
+  ws.mergeCells(GP_TITLE_ROW, 1, GP_TITLE_ROW, totalSegCol);
+  ws.getRow(GP_TITLE_ROW).height = 20;
+
+  buildTableHeader(ws, GP_HDR_ROW, colDefs, totalSegCol, DATA_START_COL, '商品セグメント', COLOR.GREEN_HDR);
+
+  for (let si = 0; si < sortedSegs.length; si++) {
+    const seg = sortedSegs[si];
+    const rowNum = GP_START_ROW + si;
+    const isGray = si % 2 === 1;
+    const rowBg = isGray ? COLOR.GRAY_ROW : COLOR.WHITE;
+
+    const labelCell = ws.getCell(rowNum, 1);
+    labelCell.value = seg;
+    applyLabelStyle(labelCell, rowBg);
+
+    for (let ci = 0; ci < colDefs.length; ci++) {
+      const col = colDefs[ci];
+      const cell = ws.getCell(rowNum, DATA_START_COL + ci);
+      const colBg = col.type === 'fy' ? COLOR.ACCENT : rowBg;
+
+      if (col.type === 'month') {
+        cell.value = { formula: `=IFERROR(SUMIFS(${rawGPRange},${rawCustRange},"${customerName}",${rawYMRange},"${col.label}",${rawSegRange},"${seg}"),0)` };
+      } else {
+        const fyCols = colDefs.map((c,i) => c.type==='month' && c.fy===col.fy ? i : -1).filter(i=>i>=0);
+        if (fyCols.length > 0) {
+          const fl = excelCol(DATA_START_COL + fyCols[0]);
+          const ll = excelCol(DATA_START_COL + fyCols[fyCols.length-1]);
+          cell.value = { formula: `=SUM(${fl}${rowNum}:${ll}${rowNum})` };
+        } else { cell.value = 0; }
+        cell.font = { bold: false, name: 'Meiryo UI', size: 10 };
+      }
+      cell.fill = fill(colBg);
+      cell.border = thinBorder();
+      cell.alignment = { vertical: 'middle', horizontal: 'right' };
+      cell.numFmt = '#,##0';
+    }
+
+    const gpTotalCell = ws.getCell(rowNum, totalSegCol);
+    gpTotalCell.value = { formula: `=IFERROR(SUMIFS(${rawGPRange},${rawCustRange},"${customerName}",${rawSegRange},"${seg}"),0)` };
+    gpTotalCell.fill = fill(rowBg);
+    gpTotalCell.border = thinBorder();
+    gpTotalCell.numFmt = '#,##0';
+    gpTotalCell.alignment = { vertical: 'middle', horizontal: 'right' };
+  }
+
+  buildSumRow(ws, GP_SUM_ROW, GP_START_ROW, GP_END_ROW, DATA_START_COL, colDefs, totalSegCol, COLOR.GREEN_SOFT, '合計', COLOR.GREEN_HDR);
+
+  // ──────────────────────────────────────
+  // 【粗利率表】 (GP_SUM_ROW + 3 から)
+  // ──────────────────────────────────────
+  const GPR_TITLE_ROW = GP_SUM_ROW + 3;
+  const GPR_HDR_ROW   = GPR_TITLE_ROW + 1;
+  const GPR_START_ROW = GPR_HDR_ROW + 1;
+  const GPR_END_ROW   = GPR_START_ROW + totalSegs - 1;
+  const GPR_SUM_ROW   = GPR_END_ROW + 1;
+
+  const gprTitleCell = ws.getCell(GPR_TITLE_ROW, 1);
+  gprTitleCell.value = '▼ 粗利率（粗利金額 ÷ 売上金額）';
+  gprTitleCell.font = { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 11 };
+  gprTitleCell.fill = fill(COLOR.TEAL_HDR);
+  gprTitleCell.alignment = { vertical: 'middle', horizontal: 'left' };
+  ws.mergeCells(GPR_TITLE_ROW, 1, GPR_TITLE_ROW, totalSegCol);
+  ws.getRow(GPR_TITLE_ROW).height = 20;
+
+  buildTableHeader(ws, GPR_HDR_ROW, colDefs, totalSegCol, DATA_START_COL, '商品セグメント', COLOR.TEAL_HDR);
+
+  for (let si = 0; si < sortedSegs.length; si++) {
+    const seg = sortedSegs[si];
+    const rowNum = GPR_START_ROW + si;
+    const isGray = si % 2 === 1;
+    const rowBg = isGray ? COLOR.GRAY_ROW : COLOR.WHITE;
+
+    const labelCell = ws.getCell(rowNum, 1);
+    labelCell.value = seg;
+    applyLabelStyle(labelCell, rowBg);
+
+    for (let ci = 0; ci < colDefs.length; ci++) {
+      const col = colDefs[ci];
+      const cell = ws.getCell(rowNum, DATA_START_COL + ci);
+      const colBg = col.type === 'fy' ? COLOR.ACCENT : rowBg;
+
+      // 売上の対応セルとGPの対応セルを参照して粗利率を計算
+      // 売上表: DATA_START_ROW + si 行目, 同じ列
+      // 粗利表: GP_START_ROW + si 行目, 同じ列
+      const salesCellAddr = `${excelCol(DATA_START_COL + ci)}${DATA_START_ROW + si}`;
+      const gpCellAddr    = `${excelCol(DATA_START_COL + ci)}${GP_START_ROW + si}`;
+      cell.value = { formula: `=IFERROR(${gpCellAddr}/${salesCellAddr},0)` };
+
+      cell.fill = fill(colBg);
+      cell.border = thinBorder();
+      cell.alignment = { vertical: 'middle', horizontal: 'right' };
+      cell.numFmt = '0.0%';
+    }
+
+    // 総粗利率（全期間）
+    const gprTotalCell = ws.getCell(rowNum, totalSegCol);
+    const salesTotalAddr = `${excelCol(totalSegCol)}${DATA_START_ROW + si}`;
+    const gpTotalAddr    = `${excelCol(totalSegCol)}${GP_START_ROW + si}`;
+    gprTotalCell.value = { formula: `=IFERROR(${gpTotalAddr}/${salesTotalAddr},0)` };
+    gprTotalCell.fill = fill(rowBg);
+    gprTotalCell.border = thinBorder();
+    gprTotalCell.numFmt = '0.0%';
+    gprTotalCell.alignment = { vertical: 'middle', horizontal: 'right' };
+  }
+
+  // 粗利率合計行（売上合計に対する粗利合計の比率）
+  const gprSumLabelCell = ws.getCell(GPR_SUM_ROW, 1);
+  gprSumLabelCell.value = '合計';
+  gprSumLabelCell.font = boldFont();
+  gprSumLabelCell.fill = fill(COLOR.BLUE_SOFT);
+  gprSumLabelCell.border = thinBorder();
+  gprSumLabelCell.alignment = { vertical: 'middle', horizontal: 'left' };
+
+  for (let ci = 0; ci < colDefs.length; ci++) {
+    const cell = ws.getCell(GPR_SUM_ROW, DATA_START_COL + ci);
+    const salesSumAddr = `${excelCol(DATA_START_COL + ci)}${SUM_ROW}`;
+    const gpSumAddr    = `${excelCol(DATA_START_COL + ci)}${GP_SUM_ROW}`;
+    cell.value = { formula: `=IFERROR(${gpSumAddr}/${salesSumAddr},0)` };
+    cell.font = boldFont();
+    cell.fill = fill(colDefs[ci].type === 'fy' ? COLOR.ACCENT : COLOR.BLUE_SOFT);
+    cell.border = thinBorder();
+    cell.numFmt = '0.0%';
+    cell.alignment = { vertical: 'middle', horizontal: 'right' };
+  }
+  const gprTotalSumCell = ws.getCell(GPR_SUM_ROW, totalSegCol);
+  gprTotalSumCell.value = { formula: `=IFERROR(${excelCol(totalSegCol)}${GP_SUM_ROW}/${excelCol(totalSegCol)}${SUM_ROW},0)` };
+  gprTotalSumCell.font = boldFont();
+  gprTotalSumCell.fill = fill(COLOR.BLUE_SOFT);
+  gprTotalSumCell.border = thinBorder();
+  gprTotalSumCell.numFmt = '0.0%';
+  gprTotalSumCell.alignment = { vertical: 'middle', horizontal: 'right' };
+
+  // ──────────────────────────────────────
+  // 列幅・行高さ・固定
+  // ──────────────────────────────────────
+  ws.getColumn(1).width = 32;
+  ws.getColumn(2).width = 18;
+  for (let ci = 1; ci < colDefs.length; ci++) {
+    ws.getColumn(DATA_START_COL + ci).width = colDefs[ci].type === 'fy' ? 15 : 13;
+  }
+  ws.getColumn(totalSegCol).width = 16;
+
+  ws.getRow(1).height = 24;
+  ws.getRow(7).height = 20;
+  ws.getRow(8).height = 22;
+
+  ws.views = [{ state: 'frozen', xSplit: 1, ySplit: 1, topLeftCell: 'B2', activeCell: 'B2' }];
+}
+
+// ──────────────────────────────────────
+// テーブルヘッダー共通構築
+// ──────────────────────────────────────
+function buildTableHeader(ws, hdrRow, colDefs, totalSegCol, DATA_START_COL, labelText, hdrColor) {
+  const hdrA = ws.getCell(hdrRow, 1);
+  hdrA.value = labelText;
+  applyHdrStyle(hdrA, hdrColor);
+  hdrA.alignment = { vertical: 'middle', horizontal: 'left', wrapText: false };
+
+  for (let ci = 0; ci < colDefs.length; ci++) {
+    const col = colDefs[ci];
+    const cell = ws.getCell(hdrRow, DATA_START_COL + ci);
+    cell.value = col.label;
+    if (col.type === 'fy') {
+      cell.font = { bold: true, color: { argb: 'FF000000' }, name: 'Meiryo UI', size: 10 };
+      cell.fill = fill(COLOR.ACCENT);
+    } else {
+      applyHdrStyle(cell, hdrColor);
+    }
+    cell.border = thinBorder();
+    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+  }
+
+  const totalHdr = ws.getCell(hdrRow, totalSegCol);
+  totalHdr.value = '商品別総計';
+  applyHdrStyle(totalHdr, hdrColor);
+  ws.getRow(hdrRow).height = 22;
+}
+
+// ──────────────────────────────────────
+// 合計行共通構築
+// ──────────────────────────────────────
+function buildSumRow(ws, sumRow, startRow, endRow, DATA_START_COL, colDefs, totalSegCol, sumBg, label, labelBg) {
+  const bgColor = labelBg || sumBg;
+  const sumLabelCell = ws.getCell(sumRow, 1);
+  sumLabelCell.value = label || '合計';
+  sumLabelCell.font = boldFont();
+  sumLabelCell.fill = fill(bgColor);
+  sumLabelCell.border = thinBorder();
+  sumLabelCell.alignment = { vertical: 'middle', horizontal: 'left' };
+
+  for (let ci = 0; ci < colDefs.length; ci++) {
+    const cell = ws.getCell(sumRow, DATA_START_COL + ci);
+    const colLetter = excelCol(DATA_START_COL + ci);
+    cell.value = { formula: `=SUM(${colLetter}${startRow}:${colLetter}${endRow})` };
+    cell.font = boldFont();
+    cell.fill = fill(colDefs[ci].type === 'fy' ? COLOR.ACCENT : sumBg);
+    cell.border = thinBorder();
+    cell.numFmt = '#,##0';
+    cell.alignment = { vertical: 'middle', horizontal: 'right' };
+  }
+
+  const totalSumCell = ws.getCell(sumRow, totalSegCol);
+  const totalColLetter = excelCol(totalSegCol);
+  totalSumCell.value = { formula: `=SUM(${totalColLetter}${startRow}:${totalColLetter}${endRow})` };
+  totalSumCell.font = boldFont();
+  totalSumCell.fill = fill(sumBg);
+  totalSumCell.border = thinBorder();
+  totalSumCell.numFmt = '#,##0';
+  totalSumCell.alignment = { vertical: 'middle', horizontal: 'right' };
+}
+
+// ============================================================
 //  BUILD SUMMARY SHEET
 // ============================================================
 function buildSummarySheet(wb, ws, sortedCustomers, colDefs, latestFY) {
-  // --- 行1: タイトル ---
-  ws.mergeCells(1, 1, 1, sortedCustomers.length + 1);
+  // 年度リストを取得
+  const fyList = [...new Set(colDefs.filter(c => c.type === 'fy').map(c => c.fy))].sort();
+
+  // ──────────────────────────────────────
+  // 行1: タイトル
+  // ──────────────────────────────────────
+  const totalCols = sortedCustomers.length + 1;
+  ws.mergeCells(1, 1, 1, totalCols);
   const t1 = ws.getCell('A1');
   t1.value = '顧客×商品セグメント別売上分析レポート｜ビルマテル';
   t1.font = { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 13 };
@@ -880,59 +1008,228 @@ function buildSummarySheet(wb, ws, sortedCustomers, colDefs, latestFY) {
   t1.alignment = { vertical: 'middle', horizontal: 'left' };
   ws.getRow(1).height = 28;
 
-  // データ期間
   const monthLabels = colDefs.filter(c => c.type === 'month').map(c => c.label);
   ws.getCell('A2').value = `データ期間: ${monthLabels[0] || '—'} ～ ${monthLabels[monthLabels.length-1] || '—'}`;
   ws.getCell('A2').font = { name: 'Meiryo UI', size: 10 };
 
-  // --- セクション1: 顧客別直近年度売上ランキング ---
-  ws.getCell('A3').value = '▶ 顧客別 直近年度売上ランキング（20社）';
-  ws.getCell('A3').font = { bold: true, name: 'Meiryo UI', size: 11 };
+  // ──────────────────────────────────────
+  // ① 売上ランキング表（年度別列付き）
+  // ──────────────────────────────────────
+  let currentRow = 4;
 
-  // ヘッダー行4
-  const rankHdrs = ['順位', '顧客名', '直近年度売上', '全期間売上', '主力セグメント'];
-  for (let i = 0; i < rankHdrs.length; i++) {
-    const cell = ws.getCell(4, i + 1);
-    cell.value = rankHdrs[i];
+  ws.getCell(currentRow - 1, 1).value = '▶ 顧客別 直近年度売上ランキング（20社）― 売上金額';
+  ws.getCell(currentRow - 1, 1).font = { bold: true, name: 'Meiryo UI', size: 11 };
+
+  // ヘッダー: 順位 | 顧客名 | 年度1計 | 年度2計 | ... | 直近年度売上 | 全期間売上 | 主力セグメント
+  const salesRankHdrs = ['順位', '顧客名', ...fyList.map(fy => `${fy}年度`), '全期間売上', '主力セグメント'];
+  for (let i = 0; i < salesRankHdrs.length; i++) {
+    const cell = ws.getCell(currentRow, i + 1);
+    cell.value = salesRankHdrs[i];
     cell.font = { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 10 };
     cell.fill = fill(COLOR.NAVY_LIGHT);
     cell.border = thinBorder();
-    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
   }
+  ws.getRow(currentRow).height = 32;
+  currentRow++;
 
-  // 20社データ行 (5〜24)
+  // データ行
+  const SALES_RANK_START = currentRow;
   for (let i = 0; i < sortedCustomers.length; i++) {
     const cust = sortedCustomers[i];
-    const rowNum = i + 5;
+    const rowNum = currentRow + i;
     const isGray = i % 2 === 1;
     const rowBg = isGray ? COLOR.GRAY_ROW : COLOR.WHITE;
-    // シート名は常にシングルクォートで囲む（全角スペース・括弧等の特殊文字対応）
     const safeSheet = `'${cust.replace(/'/g, "''")}'`;
 
     ws.getCell(rowNum, 1).value = i + 1;
     ws.getCell(rowNum, 2).value = cust;
-    ws.getCell(rowNum, 3).value = { formula: `=${safeSheet}!B3` };
-    ws.getCell(rowNum, 4).value = { formula: `=${safeSheet}!B2` };
-    ws.getCell(rowNum, 5).value = { formula: `=IFERROR(INDEX(${safeSheet}!A9:A25,MATCH(MAX(${safeSheet}!AQ9:AQ25),${safeSheet}!AQ9:AQ25,0)),"-")` };
 
-    for (let c = 1; c <= 5; c++) {
+    let colIdx = 3;
+    // 年度別売上列
+    for (const fy of fyList) {
+      const fyLabel = fiscalYearLabel(fy);
+      // 個社シートの年度計列（fy計列）を参照
+      // 個社シートではcolDefsの順にB列から並んでいるので年度計列アドレスを特定する
+      // サマリ参照のため個社シートのSUMIFS式で計算
+      const fyColIdxInCust = colDefs.findIndex(c => c.type === 'fy' && c.fy === fy);
+      if (fyColIdxInCust >= 0) {
+        const fyExcelCol = excelCol(2 + fyColIdxInCust);
+        // 個社シートの合計行（DATA_END_ROW+1 = 9+17-1+1 = 26）の年度計列を参照
+        ws.getCell(rowNum, colIdx).value = { formula: `=IFERROR(${safeSheet}!${fyExcelCol}26,0)` };
+      } else {
+        ws.getCell(rowNum, colIdx).value = 0;
+      }
+      ws.getCell(rowNum, colIdx).numFmt = '#,##0';
+      colIdx++;
+    }
+
+    // 全期間売上
+    ws.getCell(rowNum, colIdx).value = { formula: `=${safeSheet}!B2` };
+    ws.getCell(rowNum, colIdx).numFmt = '#,##0';
+    colIdx++;
+
+    // totalSegColを動的に計算（個社シートと同じロジック）
+    const custTotalSegCol = 2 + colDefs.length; // DATA_START_COL=2 + colDefs.length
+    const custTotalColLetter = excelCol(custTotalSegCol);
+    // 主力セグメント（売上表の総計列の最大値のセグメント名）
+    ws.getCell(rowNum, colIdx).value = { formula: `=IFERROR(INDEX(${safeSheet}!A9:A25,MATCH(MAX(${safeSheet}!${custTotalColLetter}9:${custTotalColLetter}25),${safeSheet}!${custTotalColLetter}9:${custTotalColLetter}25,0)),"-")` };
+
+    for (let c = 1; c <= colIdx; c++) {
+      const cell = ws.getCell(rowNum, c);
+      cell.fill = fill(rowBg);
+      cell.border = thinBorder();
+      if (!cell.font || !cell.font.name) cell.font = { name: 'Meiryo UI', size: 10 };
+      else cell.font = { ...cell.font, name: 'Meiryo UI', size: 10 };
+      cell.alignment = { vertical: 'middle', horizontal: c <= 2 || c === colIdx ? 'left' : 'right' };
+    }
+  }
+  currentRow += sortedCustomers.length;
+  const SALES_RANK_END = currentRow - 1;
+
+  // ──────────────────────────────────────
+  // ② 粗利金額ランキング表
+  // ──────────────────────────────────────
+  currentRow += 3;
+
+  ws.getCell(currentRow - 1, 1).value = '▶ 顧客別 直近年度粗利ランキング（20社）― 粗利金額';
+  ws.getCell(currentRow - 1, 1).font = { bold: true, name: 'Meiryo UI', size: 11 };
+
+  const gpRankHdrs = ['順位', '顧客名', ...fyList.map(fy => `${fy}年度`), '全期間粗利', '主力セグメント'];
+  for (let i = 0; i < gpRankHdrs.length; i++) {
+    const cell = ws.getCell(currentRow, i + 1);
+    cell.value = gpRankHdrs[i];
+    cell.font = { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 10 };
+    cell.fill = fill(COLOR.GREEN_HDR);
+    cell.border = thinBorder();
+    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+  }
+  ws.getRow(currentRow).height = 32;
+  currentRow++;
+
+  // GP_SUM_ROW = SUM_ROW + 3 + totalSegs + 1 = 26 + 3 + 17 + 1 = 47 (個社シートの粗利合計行)
+  // 個社シートレイアウト: DATA_END_ROW=25, SUM_ROW=26, GP_TITLE_ROW=29, GP_HDR_ROW=30, GP_START_ROW=31, GP_END_ROW=47, GP_SUM_ROW=48
+  const GP_SUM_ROW_IN_CUST = 48; // 粗利合計行（固定: DATA_END_ROW=25, +3+1+segs行+1）
+
+  // 粗利ランキングは直近年度粗利で降順にソート（表示上の並び替えは売上に合わせる）
+  for (let i = 0; i < sortedCustomers.length; i++) {
+    const cust = sortedCustomers[i];
+    const rowNum = currentRow + i;
+    const isGray = i % 2 === 1;
+    const rowBg = isGray ? COLOR.GRAY_ROW : COLOR.WHITE;
+    const safeSheet = `'${cust.replace(/'/g, "''")}'`;
+
+    ws.getCell(rowNum, 1).value = i + 1;
+    ws.getCell(rowNum, 2).value = cust;
+
+    let colIdx = 3;
+    for (const fy of fyList) {
+      const fyColIdxInCust = colDefs.findIndex(c => c.type === 'fy' && c.fy === fy);
+      if (fyColIdxInCust >= 0) {
+        const fyExcelCol = excelCol(2 + fyColIdxInCust);
+        ws.getCell(rowNum, colIdx).value = { formula: `=IFERROR(${safeSheet}!${fyExcelCol}${GP_SUM_ROW_IN_CUST},0)` };
+      } else {
+        ws.getCell(rowNum, colIdx).value = 0;
+      }
+      ws.getCell(rowNum, colIdx).numFmt = '#,##0';
+      colIdx++;
+    }
+
+    // 全期間粗利
+    const gpTotalCol = excelCol(2 + colDefs.length); // totalSegCol = DATA_START_COL + colDefs.length
+    ws.getCell(rowNum, colIdx).value = { formula: `=IFERROR(${safeSheet}!${gpTotalCol}${GP_SUM_ROW_IN_CUST},0)` };
+    ws.getCell(rowNum, colIdx).numFmt = '#,##0';
+    colIdx++;
+
+    // 主力セグメント（粗利表から）: GP_START_ROW=31, GP_END_ROW=47
+    const gpSegStartRow = 31;
+    const gpSegEndRow = 47;
+    ws.getCell(rowNum, colIdx).value = { formula: `=IFERROR(INDEX(${safeSheet}!A${gpSegStartRow}:A${gpSegEndRow},MATCH(MAX(${safeSheet}!${gpTotalCol}${gpSegStartRow}:${gpTotalCol}${gpSegEndRow}),${safeSheet}!${gpTotalCol}${gpSegStartRow}:${gpTotalCol}${gpSegEndRow},0)),"-")` };
+
+    for (let c = 1; c <= colIdx; c++) {
       const cell = ws.getCell(rowNum, c);
       cell.fill = fill(rowBg);
       cell.border = thinBorder();
       cell.font = { name: 'Meiryo UI', size: 10 };
-      cell.alignment = { vertical: 'middle', horizontal: c <= 2 ? 'left' : (c === 5 ? 'left' : 'right') };
-      if (c >= 3 && c <= 4) cell.numFmt = '#,##0';
+      cell.alignment = { vertical: 'middle', horizontal: c <= 2 || c === colIdx ? 'left' : 'right' };
     }
   }
+  currentRow += sortedCustomers.length;
 
-  // --- セクション2: 商品セグメント×顧客 クロス集計 ---
-  const CROSS_HDR_ROW = 27;
-  const CROSS_DATA_ROW = 28;
+  // ──────────────────────────────────────
+  // ③ 粗利率ランキング表
+  // ──────────────────────────────────────
+  currentRow += 3;
 
-  ws.getCell(CROSS_HDR_ROW - 1, 1).value = '▶ 商品セグメント別 × 顧客 クロス集計（全期間売上）';
-  ws.getCell(CROSS_HDR_ROW - 1, 1).font = { bold: true, name: 'Meiryo UI', size: 11 };
+  ws.getCell(currentRow - 1, 1).value = '▶ 顧客別 直近年度粗利率ランキング（20社）― 粗利率（粗利÷売上）';
+  ws.getCell(currentRow - 1, 1).font = { bold: true, name: 'Meiryo UI', size: 11 };
 
-  // ヘッダー行
+  // 粗利率表：年度ごとの粗利率（個社シートのGPR合計行の年度計列を参照）
+  // GPR_SUM_ROW_IN_CUST = 70（個社シート: GP_SUM_ROW=48, +3タイトル+1ヘッダー+17セグ+1合計 = 70）
+  const GPR_SUM_ROW_IN_CUST = 70;
+
+  const gprRankHdrs = ['順位', '顧客名', ...fyList.map(fy => `${fy}年度`), '全期間粗利率'];
+  for (let i = 0; i < gprRankHdrs.length; i++) {
+    const cell = ws.getCell(currentRow, i + 1);
+    cell.value = gprRankHdrs[i];
+    cell.font = { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 10 };
+    cell.fill = fill(COLOR.TEAL_HDR);
+    cell.border = thinBorder();
+    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+  }
+  ws.getRow(currentRow).height = 32;
+  currentRow++;
+
+  for (let i = 0; i < sortedCustomers.length; i++) {
+    const cust = sortedCustomers[i];
+    const rowNum = currentRow + i;
+    const isGray = i % 2 === 1;
+    const rowBg = isGray ? COLOR.GRAY_ROW : COLOR.WHITE;
+    const safeSheet = `'${cust.replace(/'/g, "''")}'`;
+
+    ws.getCell(rowNum, 1).value = i + 1;
+    ws.getCell(rowNum, 2).value = cust;
+
+    let colIdx = 3;
+    // 年度別粗利率：個社シートのGPR合計行（行70）の各年度列を参照
+    for (const fy of fyList) {
+      const fyColIdxInCust = colDefs.findIndex(c => c.type === 'fy' && c.fy === fy);
+      if (fyColIdxInCust >= 0) {
+        const fyExcelCol = excelCol(2 + fyColIdxInCust);
+        ws.getCell(rowNum, colIdx).value = { formula: `=IFERROR(${safeSheet}!${fyExcelCol}${GPR_SUM_ROW_IN_CUST},0)` };
+      } else {
+        ws.getCell(rowNum, colIdx).value = 0;
+      }
+      ws.getCell(rowNum, colIdx).numFmt = '0.0%';
+      colIdx++;
+    }
+
+    // 全期間粗利率：個社シートのGPR合計行の総計列を参照
+    const totalCol = excelCol(2 + colDefs.length);
+    ws.getCell(rowNum, colIdx).value = { formula: `=IFERROR(${safeSheet}!${totalCol}${GPR_SUM_ROW_IN_CUST},0)` };
+    ws.getCell(rowNum, colIdx).numFmt = '0.0%';
+
+    for (let c = 1; c <= colIdx; c++) {
+      const cell = ws.getCell(rowNum, c);
+      cell.fill = fill(rowBg);
+      cell.border = thinBorder();
+      cell.font = { name: 'Meiryo UI', size: 10 };
+      cell.alignment = { vertical: 'middle', horizontal: c <= 2 ? 'left' : 'right' };
+    }
+  }
+  currentRow += sortedCustomers.length;
+
+  // ──────────────────────────────────────
+  // ④ 商品セグメント×顧客 クロス集計（売上・全期間）
+  // ──────────────────────────────────────
+  currentRow += 3;
+
+  ws.getCell(currentRow - 1, 1).value = '▶ 商品セグメント別 × 顧客 クロス集計（全期間売上）';
+  ws.getCell(currentRow - 1, 1).font = { bold: true, name: 'Meiryo UI', size: 11 };
+
+  const CROSS_HDR_ROW  = currentRow;
+  const CROSS_DATA_ROW = currentRow + 1;
+
   const crossHdrA = ws.getCell(CROSS_HDR_ROW, 1);
   crossHdrA.value = '商品セグメント';
   crossHdrA.font = { bold: true, color: { argb: COLOR.WHITE }, name: 'Meiryo UI', size: 9 };
@@ -950,7 +1247,6 @@ function buildSummarySheet(wb, ws, sortedCustomers, colDefs, latestFY) {
   }
   ws.getRow(CROSS_HDR_ROW).height = 50;
 
-  // セグメントデータ行
   for (let si = 0; si < SEGMENTS.length; si++) {
     const seg = SEGMENTS[si];
     const rowNum = CROSS_DATA_ROW + si;
@@ -976,19 +1272,18 @@ function buildSummarySheet(wb, ws, sortedCustomers, colDefs, latestFY) {
     }
   }
 
-  // 合計行
-  const sumRowNum = CROSS_DATA_ROW + SEGMENTS.length;
-  const sumLabelCell = ws.getCell(sumRowNum, 1);
-  sumLabelCell.value = '合計';
-  sumLabelCell.font = { bold: true, name: 'Meiryo UI', size: 10 };
-  sumLabelCell.fill = fill(COLOR.BLUE_HEADER);
-  sumLabelCell.border = thinBorder();
-  sumLabelCell.alignment = { vertical: 'middle', horizontal: 'left' };
+  const crossSumRow = CROSS_DATA_ROW + SEGMENTS.length;
+  const crossSumLabel = ws.getCell(crossSumRow, 1);
+  crossSumLabel.value = '合計';
+  crossSumLabel.font = { bold: true, name: 'Meiryo UI', size: 10 };
+  crossSumLabel.fill = fill(COLOR.BLUE_HEADER);
+  crossSumLabel.border = thinBorder();
+  crossSumLabel.alignment = { vertical: 'middle', horizontal: 'left' };
 
   for (let ci = 0; ci < sortedCustomers.length; ci++) {
     const colLetter = excelCol(ci + 2);
-    const cell = ws.getCell(sumRowNum, ci + 2);
-    cell.value = { formula: `=SUM(${colLetter}${CROSS_DATA_ROW}:${colLetter}${sumRowNum - 1})` };
+    const cell = ws.getCell(crossSumRow, ci + 2);
+    cell.value = { formula: `=SUM(${colLetter}${CROSS_DATA_ROW}:${colLetter}${crossSumRow - 1})` };
     cell.font = { bold: true, name: 'Meiryo UI', size: 10 };
     cell.fill = fill(COLOR.BLUE_HEADER);
     cell.border = thinBorder();
@@ -996,35 +1291,38 @@ function buildSummarySheet(wb, ws, sortedCustomers, colDefs, latestFY) {
     cell.alignment = { vertical: 'middle', horizontal: 'right' };
   }
 
-  // --- セクション3: 営業示唆コメント（削除） ---
-  // コメントセクションは省略
-
-  // --- 列幅 ---
-  ws.getColumn(1).width = 36;
-  for (let ci = 0; ci < sortedCustomers.length; ci++) {
-    ws.getColumn(ci + 2).width = 20;
+  // ──────────────────────────────────────
+  // 列幅設定
+  // ──────────────────────────────────────
+  ws.getColumn(1).width = 24;   // ③ A列（順位）→ 24
+  ws.getColumn(2).width = 36;   // B列（顧客名）
+  for (let i = 0; i < fyList.length; i++) {
+    ws.getColumn(3 + i).width = 16; // C列〜（年度別）
   }
-  // ランキング表用（A〜E列に独立した幅を設定）
-  ws.getColumn(1).width = 8;   // 順位
-  ws.getColumn(2).width = 36;  // 顧客名
-  ws.getColumn(3).width = 18;  // 直近年度売上
-  ws.getColumn(4).width = 18;  // 全期間売上
-  ws.getColumn(5).width = 28;  // 主力セグメント
+  // fyList.length個の年度列の後: 全期間売上・主力セグメント
+  ws.getColumn(3 + fyList.length).width = 18;     // 全期間売上
+  ws.getColumn(3 + fyList.length + 1).width = 28; // 主力セグメント
 
-  // 見出し固定
-  ws.views = [{ state: 'frozen', xSplit: 0, ySplit: 1, topLeftCell: 'A2', activeCell: 'A2' }];
+  // ③ J列〜U列（列番号10〜21）の幅を18に設定
+  for (let col = 10; col <= 21; col++) {
+    ws.getColumn(col).width = 18;
+  }
+
+  // ④ B列（顧客名）を固定し、C列以降がスクロール（xSplit:2）
+  ws.views = [{ state: 'frozen', xSplit: 2, ySplit: 1, topLeftCell: 'C2', activeCell: 'C2' }];
 }
 
 // ============================================================
 //  BUILD RAW DATA SHEET
 // ============================================================
 function buildRawDataSheet(wb, ws, rows) {
-  const headers = ['売上NO','売上NO行','売上日','得意先名','売上分類名','現場名','ゼネコン名','担当者名',
-                   '商品名','数量','単位名','売上単価','売上金額','原価単価','原価金額','粗利金額','粗利率',
-                   '明細摘要','仕入NO','更新オペレータ名','施主名','設計者',
-                   '【年月】','【セグメント】']; // W列=年月, X列=セグメント
+  const headers = [
+    'A:売上NO','B:売上NO行','C:売上日','D:得意先名','E:売上分類名','F:現場名','G:ゼネコン名','H:担当者名',
+    'I:商品名','J:数量','K:単位名','L:売上単価','M:売上金額','N:原価単価','O:原価金額','P:粗利金額','Q:粗利率',
+    'R:明細摘要','S:仕入NO','T:更新オペレータ名','U:施主名','V:設計者',
+    'W:【年月】','X:【セグメント】'
+  ];
 
-  // ヘッダー行
   const hdrRow = ws.getRow(1);
   for (let i = 0; i < headers.length; i++) {
     const cell = ws.getCell(1, i + 1);
@@ -1035,33 +1333,31 @@ function buildRawDataSheet(wb, ws, rows) {
     cell.alignment = { vertical: 'middle', horizontal: 'center' };
   }
 
-  // データ行（全行。対象顧客以外もRawDataに含める）
   let rowNum = 2;
   for (const r of rows) {
     const ym = r.date ? getYearMonth(r.date) : '';
     const seg = classifySegment(r.product);
-    // 22列の元データ + W列(年月) + X列(セグメント)
     const rowVals = new Array(24).fill('');
-    rowVals[2]  = r.date;      // C列: 売上日
-    rowVals[3]  = r.customer;  // D列: 得意先名
-    rowVals[8]  = r.product;   // I列: 商品名
-    rowVals[9]  = r.qty;       // J列: 数量
-    rowVals[12] = r.amount;    // M列: 売上金額
-    rowVals[22] = ym;          // W列: 年月テキスト (index 22 = 23列目)
-    rowVals[23] = seg;         // X列: セグメント (index 23 = 24列目)
+    rowVals[2]  = r.date;
+    rowVals[3]  = r.customer;
+    rowVals[8]  = r.product;
+    rowVals[9]  = r.qty;
+    rowVals[12] = r.amount;
+    rowVals[15] = r.grossProfit;  // P列: 粗利金額
+    rowVals[22] = ym;             // W列
+    rowVals[23] = seg;            // X列
     ws.getRow(rowNum).values = rowVals;
     rowNum++;
   }
 
-  // 列幅自動調整（主要列）
-  ws.getColumn(3).width = 20;  // 売上日
-  ws.getColumn(4).width = 32;  // 得意先名
-  ws.getColumn(9).width = 40;  // 商品名
-  ws.getColumn(13).width = 14; // 売上金額
-  ws.getColumn(23).width = 12; // 年月
-  ws.getColumn(24).width = 24; // セグメント
+  ws.getColumn(3).width  = 20;
+  ws.getColumn(4).width  = 32;
+  ws.getColumn(9).width  = 40;
+  ws.getColumn(13).width = 14;
+  ws.getColumn(16).width = 14;
+  ws.getColumn(23).width = 12;
+  ws.getColumn(24).width = 24;
 
-  // 見出し固定
   ws.views = [{ state: 'frozen', xSplit: 0, ySplit: 1, topLeftCell: 'A2', activeCell: 'A2' }];
 }
 
@@ -1083,11 +1379,9 @@ async function generateReport(file) {
 
   const aggData = aggregateData(allRows);
 
-  // 対象顧客のフィルタ行
   const targetRows = allRows.filter(r => TARGET_CUSTOMERS.includes(r.customer));
   log('info', `対象顧客行数: ${targetRows.length.toLocaleString()} 件`);
 
-  // 月リスト
   const months = buildMonthList(targetRows);
   const colDefs = buildColumnDefs(months);
   log('info', `集計期間: ${months[0]} ～ ${months[months.length-1]} (${months.length}ヶ月)`);
@@ -1096,17 +1390,12 @@ async function generateReport(file) {
 
   // 顧客を直近年度売上降順でソート
   const custLatestSales = TARGET_CUSTOMERS.map(c => {
-    const fyLabel = fiscalYearLabel(latestFY);
-    const fyColIdx = colDefs.findIndex(cd => cd.type === 'fy' && cd.label === fyLabel);
-    if (fyColIdx < 0) return { c, sales: 0 };
-
     const cData = aggData[c] || {};
     let total = 0;
     for (const seg of SEGMENTS) {
       const segData = cData[seg] || {};
       for (const [ym, amt] of Object.entries(segData)) {
-        const fy = getFiscalYear(ym + '/01');
-        if (fy === latestFY) total += amt;
+        if (getFiscalYear(ym + '/01') === latestFY) total += amt;
       }
     }
     return { c, sales: total };
@@ -1114,7 +1403,6 @@ async function generateReport(file) {
   const sortedCustomers = custLatestSales.sort((a, b) => b.sales - a.sales).map(x => x.c);
   log('info', `顧客順位1位: ${sortedCustomers[0]}`);
 
-  // ─── ExcelJSでワークブック作成 ───
   const wb = new ExcelJS.Workbook();
   wb.creator = 'ビルマテル売上分析ツール';
   wb.created = new Date();
@@ -1125,7 +1413,6 @@ async function generateReport(file) {
   buildSummarySheet(wb, wsSummary, sortedCustomers, colDefs, latestFY);
   log('ok', 'サマリシート作成完了');
 
-  // 顧客シート
   for (let i = 0; i < sortedCustomers.length; i++) {
     const cust = sortedCustomers[i];
     const pct = 20 + Math.round((i / sortedCustomers.length) * 65);
@@ -1133,7 +1420,6 @@ async function generateReport(file) {
     const ws = wb.addWorksheet(cust);
     buildCustomerSheet(wb, ws, cust, colDefs, aggData, allRows, latestFY);
     log('ok', `  ✓ ${cust}`);
-    // UIを更新するために少し待つ
     if (i % 3 === 0) await sleep(0);
   }
 
@@ -1159,10 +1445,8 @@ async function generateReport(file) {
     `${sortedCustomers.length + 2}シート（顧客${sortedCustomers.length}社 + サマリ + RawData）`;
   document.getElementById('btnDownload').onclick = () => {
     const url = URL.createObjectURL(generatedBlob);
-    // iframeのダウンロード制限を回避するため新しいタブで開く
     const newTab = window.open(url, '_blank');
     if (!newTab) {
-      // ポップアップブロックされた場合はフォールバック
       const a = document.createElement('a');
       a.href = url;
       a.download = fileName;
@@ -1172,7 +1456,6 @@ async function generateReport(file) {
       a.click();
       document.body.removeChild(a);
     }
-    // メモリ解放は少し遅らせる
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   };
 
@@ -1181,7 +1464,6 @@ async function generateReport(file) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// ─── UI Helpers ───
 function setProgress(pct, label) {
   document.getElementById('progressBar').style.width = `${pct}%`;
   document.getElementById('progressStep').textContent = label;
@@ -1197,7 +1479,6 @@ function log(type, msg) {
   logArea.scrollTop = logArea.scrollHeight;
 }
 
-// ─── UI Events ───
 let selectedFile = null;
 
 document.getElementById('fileInput').addEventListener('change', e => {
